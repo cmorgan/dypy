@@ -227,9 +227,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
 	    
 	    self.iteration = 0
 	
-    def on_key_press(self, symbol, modifiers):
-        import sys
-        
+    def on_key_press(self, symbol, modifiers):  
         if symbol == 65293: # a button
 	        self.x_rotate = self.y_rotate = self.z_rotate = self.iteration = 0
         elif symbol == 65289: # b button
@@ -244,4 +242,5 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         elif symbol == 65362: # up
 	        self.on_mouse_drag(0, 0, 0, 10, 0 ,0)
         elif symbol == 65288: # backspace
-	        sys.exit()
+            import sys
+            sys.exit()
