@@ -18,19 +18,19 @@ class Tool(Pyro.core.ObjBase):
     
     def set_parameter_index(self, parameter_index):
         self.parameter_index = parameter_index
-        self.init_points() 
+        self.server.update_tool(self)
     
     def set_state_index(self, state_index):
         self.state_index = state_index
-        self.init_points()    
+        self.server.update_tool(self)  
     
     def set_parameter_ranges(self, parameter_ranges):
         self.parameter_ranges = parameter_ranges
-        self.init_points()
+        self.server.update_tool(self)
     
     def set_state_ranges(self, state_ranges):
         self.state_ranges = state_ranges
-        self.init_points()
+        self.server.update_tool(self)
     
     def init_points(self):
         assert 0, 'must be defined'

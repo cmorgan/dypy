@@ -2,7 +2,7 @@ import Pyro.core
 import Pyro.naming
 import threading
 
-gl_lock = threading.RLock()
+gl_lock = threading.Lock()
 
 class PyroServer(threading.Thread):
     def __init__(self):
@@ -34,8 +34,9 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         while not self.ready:
             time.sleep(1)   
     
-    def set_tool(self, tool):
+    def update_tool(self, tool):
         self.tool = tool
+        self.tool_updated = True
     
     def get_tools(self):
         return self.tools
@@ -74,7 +75,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.rotation_velocity = 0.8
         self.iteration = 0
         self.set_axes_center()
-        self.set_bounds((-1, 1), (-1, 1), (-1, 1))
+        self.set_bounds((-1, 1), (-1, 1), (-1, 1), False)
         
         # don't hog more cpu than is useful
         pyglet.clock.set_fps_limit(30)
@@ -87,7 +88,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.server.daemon.connect(t, 'OrbitTool')
         self.tools.append(t)
         
-        self.tool = self.tools[0]     
+        self.update_tool(self.tools[0])     
         
         # setup alpha blending
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -102,48 +103,60 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.ready = 1       
 
         while not self.window.has_exit:
-            pyglet.clock.tick()
+            pyglet.clock.tick()          
             gl_lock.acquire()
-            self.window.switch_to()
-            self.window.dispatch_events()
             
-            if self.clear_each_frame or self.iteration == 0:
-                glClear(GL_COLOR_BUFFER_BIT)
-		    
-			# reset model matrix
-            glMatrixMode(GL_MODELVIEW)
-            glLoadIdentity()
-			
-            # translate to center
-            glTranslatef(self.x_center, self.y_center, self.z_center)
-			
-            # rotate around axes
-            glRotatef(self.x_rotate, 1, 0, 0)
-            glRotatef(self.y_rotate, 0, 1, 0)
-            glRotatef(self.z_rotate, 0, 0, 1)
-			
-            # draw reference axes
-            if not self.hide_axes and (self.clear_each_frame or self.iteration == 0):
-                self.draw_axes() 
-			
-            # translate back to lower left corner
-            glTranslatef(-self.x_center, -self.y_center, -self.z_center)    
-
-            self.tool.draw_points()
-
-            self.iteration += 1
-            self.window.flip()
-
-            # process server requests
-            socks = self.server.daemon.getServerSockets()
-            ins, outs, exs = select.select(socks, [], [], 0)
-            
-            for s in socks:
-                if s in ins:
-                    self.server.daemon.handleRequests()
-                    break
+            try:
+                self.window.switch_to()
+                self.window.dispatch_events()
                 
-            gl_lock.release()
+                if self.tool_updated:
+                    self.tool.init_points()
+                    self.tool_updated = False
+                
+                if self.clear_each_frame or self.iteration == 0:
+                    glClear(GL_COLOR_BUFFER_BIT)
+    		    
+    			# reset model matrix
+                glMatrixMode(GL_MODELVIEW)
+                glLoadIdentity()
+    			
+                # translate to center
+                glTranslatef(self.x_center, self.y_center, self.z_center)
+    			
+                # rotate around axes
+                glRotatef(self.x_rotate, 1, 0, 0)
+                glRotatef(self.y_rotate, 0, 1, 0)
+                glRotatef(self.z_rotate, 0, 0, 1)
+    			
+                # draw reference axes
+                if not self.hide_axes and (self.clear_each_frame or self.iteration == 0):
+                    self.draw_axes() 
+    			
+                # translate back to lower left corner
+                glTranslatef(-self.x_center, -self.y_center, -self.z_center)    
+    
+                # tell the tool to draw its content
+                self.tool.draw_points()
+    
+                # iteration is done, swap display buffers
+                self.iteration += 1
+                self.window.flip()
+    
+                # process server requests
+                socks = self.server.daemon.getServerSockets()
+                ins, outs, exs = select.select(socks, [], [], 0)
+                
+                for s in socks:
+                    if s in ins:
+                        self.server.daemon.handleRequests()
+                        break
+            except Exception, detail:
+                print type(detail), detail
+            finally:
+                gl_lock.release()
+            
+        self.window.close()
         
     def set_axes_center(self, x_center=0, y_center=0, z_center=0):
         self.x_center = x_center
@@ -170,7 +183,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         glVertex3f(0, 0, self.dimension_max**2)
         glEnd()
 
-    def set_bounds(self, (x_min, x_max), (y_min, y_max), (z_min, z_max)):
+    def set_bounds(self, (x_min, x_max), (y_min, y_max), (z_min, z_max), resize=True):
         self.x_min = x_min
         self.x_max = x_max
         self.y_min = y_min
@@ -180,28 +193,28 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.dimension_max = max(abs(self.x_min), abs(self.x_max), \
             abs(self.y_min), abs(self.y_max), abs(self.z_min), abs(self.z_max))
         
-        if not(x_min == 0 and x_max == 0) and not(y_min == 0 and y_max == 0):
+        if resize:
             self.on_resize(self.width, self.height) 
 	
     def on_close(self):
         self.window.has_exit = True
-        self.window.close()
         self.server.daemon.shutdown()
     
-    def on_resize(self, width, height):
-        gl_lock.acquire()
-        
+    def on_resize(self, width, height):        
         try:
             self.window.switch_to()
             
+            if (self.x_min == 0 and self.x_max == 0) or (self.y_min == 0 and self.y_max == 0):
+                return
+            
             from pyglet.gl import glViewport, glMatrixMode, GL_PROJECTION, glLoadIdentity, glOrtho, GL_MODELVIEW
             
-            print 'DynamicsServer: Setting viewport to', width, height
+            print 'ToolServer: Setting viewport to', width, height
             glViewport(0, 0, width, height)
     	    
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
-            print 'DynamicsServer: Setting projection to', self.x_min, self.x_max, self.y_min, self.y_max, \
+            print 'ToolServer: Setting projection to', self.x_min, self.x_max, self.y_min, self.y_max, \
                     -self.dimension_max, self.dimension_max        
             glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, \
     			    -self.dimension_max, self.dimension_max)
@@ -209,9 +222,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
             glMatrixMode(GL_MODELVIEW)
         except Exception, detail:
             print 'on_resize()', type(detail), detail
-        finally:
-            gl_lock.release()
-	
+
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):    
 	    self.y_rotate += (dx * self.rotation_velocity) # change in x rotates around y-axis
 	    self.y_rotate %= 360

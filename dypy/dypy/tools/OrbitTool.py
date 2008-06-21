@@ -1,9 +1,6 @@
 from dypy.tools.Tool import Tool
 import numpy
 import random
-import threading
-
-points_lock = threading.Lock()
 
 class OrbitPoint():
     def __init__(self, **kwds):
@@ -34,15 +31,15 @@ class OrbitTool(Tool):
         self.density = 3
         self.server.hide_axes = True
         self.server.clear_each_frame = True
-        self.server.set_tool(self)
+        self.server.update_tool(self)
         
     def set_age_max(self, age_max):
         self.age_max = age_max
-        self.init_points()
+        self.server.update_tool(self)
     
     def set_density(self, density):
         self.density = density
-        self.init_points()
+        self.server.update_tool(self)
     
     def set_show_history(self, show_history):
         self.server.clear_each_frame = not(show_history)
@@ -66,8 +63,6 @@ class OrbitTool(Tool):
         self.server.set_axes_center(sum(pr)/2.0, sum(sr)/2.0, 0)
 
     def init_points(self):
-        points_lock.acquire()
-        
         try:
             self.points = []
             parameter_increment = (self.parameter_ranges[self.parameter_index][1] - \
@@ -81,12 +76,8 @@ class OrbitTool(Tool):
                 parameter += parameter_increment        
         except Exception, detail:
             print 'init_points()', type(detail), detail
-        finally:
-            points_lock.release()
 
     def draw_points(self):
-        points_lock.acquire()
-        
         try:
             from pyglet.gl import glBegin, glEnd, GL_POINTS, glColor4f, glVertex2f, glGetError, gluErrorString
             
@@ -114,5 +105,3 @@ class OrbitTool(Tool):
             pass
         except Exception, detail:
             print 'draw_points()', type(detail), detail
-        finally:
-            points_lock.release()
