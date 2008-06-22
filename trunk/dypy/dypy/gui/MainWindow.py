@@ -1,7 +1,7 @@
 from dypy.gui.MainPanel import MainPanel
+from dypy.gui.OrbitToolGUI import OrbitToolGUI
 from dypy.gui.SystemPanel import SystemPanel
 import dypy.gui.utils as utils
-from dypy.tools.ToolServer import ToolServer
 import Pyro.naming
 import wx
 
@@ -17,7 +17,6 @@ class MainWindow(wx.Frame):
 		ns = Pyro.naming.NameServerLocator().getNS(host='localhost')
 		uri = ns.resolve('ToolServer')
 		self.server = uri.getAttrProxy()
-		print self.server
 
 		utils.debug("MainWindow: Frame initialized")
 
@@ -51,8 +50,7 @@ class MainWindow(wx.Frame):
 		utils.debug("MainWindow: Dynamically loading systems, demos, and tools.")
 		self.systems = utils.get_systems()
 		self.demos = utils.get_demos()
-		self.tools = self.server.get_tools()
-
+		self.tools = [OrbitToolGUI(self)]
 		self.active_tool = self.tools[0]
 		
 		utils.debug("MainWindow: Setting up gui panels.")
