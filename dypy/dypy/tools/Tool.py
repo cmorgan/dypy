@@ -14,6 +14,7 @@ class Tool(Pyro.core.ObjBase):
         
     def set_system(self, system):
         print 'DynamicsTool: Set system to', system
+        self.server.window.set_caption(system.name)
         self.system = system
     
     def set_parameter_index(self, parameter_index):

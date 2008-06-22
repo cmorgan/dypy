@@ -47,8 +47,8 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         
         from dypy.tools.OrbitTool import OrbitTool
         from pyglet.gl import glBlendFunc, glEnable, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, \
-            GL_BLEND, glClear, GL_COLOR_BUFFER_BIT, glMatrixMode, GL_MODELVIEW, \
-            glLoadIdentity, glTranslatef, glRotatef, gl_info
+            GL_BLEND, glClear, GL_COLOR_BUFFER_BIT, glMatrixMode, GL_PROJECTION, GL_MODELVIEW, \
+            glLoadIdentity, glTranslatef, glRotatef, gl_info, glViewport, glOrtho
         import pyglet.clock
         import pyglet.window
         import select
@@ -82,13 +82,12 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         
         # create tools and connect them to server
         self.server.daemon.connect(self, 'ToolServer')
-        self.tools = []
         
         t = OrbitTool(server=self)
-        self.server.daemon.connect(t, 'OrbitTool')
-        self.tools.append(t)
+        self.server.daemon.connect(OrbitTool(server=self), 'OrbitTool')
+        self.update_tool(t)
         
-        self.update_tool(self.tools[0])     
+        self.tools = ['OrbitTool']
         
         # setup alpha blending
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -99,20 +98,35 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         print 'GL renderer:', gl_info.get_renderer()
         print 'Pyglet version:', pyglet.version
         
-        # tells waitUntilStarted we're ready
-        self.ready = 1       
+        # event flags
+        self.ready = True
+        self.tool_updated = False
+        self.window_resized = False
 
         while not self.window.has_exit:
             pyglet.clock.tick()          
             gl_lock.acquire()
             
             try:
-                self.window.switch_to()
                 self.window.dispatch_events()
                 
                 if self.tool_updated:
-                    self.tool.init_points()
                     self.tool_updated = False
+                    self.tool.init_points()
+                
+                if self.window_resized:
+                    self.window_resized = False
+         
+                    if (self.x_min == 0 and self.x_max == 0) or (self.y_min == 0 and self.y_max == 0):
+                        continue
+                    
+                    glViewport(0, 0, self.width, self.height)
+            
+                    glMatrixMode(GL_PROJECTION)
+                    glLoadIdentity()
+                    print 'ToolServer: Setting projection to', self.x_min, self.x_max, self.y_min, self.y_max, \
+                        -self.dimension_max, self.dimension_max        
+                    glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max)             
                 
                 if self.clear_each_frame or self.iteration == 0:
                     glClear(GL_COLOR_BUFFER_BIT)
@@ -201,27 +215,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.server.daemon.shutdown()
     
     def on_resize(self, width, height):        
-        try:
-            self.window.switch_to()
-            
-            if (self.x_min == 0 and self.x_max == 0) or (self.y_min == 0 and self.y_max == 0):
-                return
-            
-            from pyglet.gl import glViewport, glMatrixMode, GL_PROJECTION, glLoadIdentity, glOrtho, GL_MODELVIEW
-            
-            print 'ToolServer: Setting viewport to', width, height
-            glViewport(0, 0, width, height)
-    	    
-            glMatrixMode(GL_PROJECTION)
-            glLoadIdentity()
-            print 'ToolServer: Setting projection to', self.x_min, self.x_max, self.y_min, self.y_max, \
-                    -self.dimension_max, self.dimension_max        
-            glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, \
-    			    -self.dimension_max, self.dimension_max)
-    	            	    
-            glMatrixMode(GL_MODELVIEW)
-        except Exception, detail:
-            print 'on_resize()', type(detail), detail
+        self.window_resized = True
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):    
 	    self.y_rotate += (dx * self.rotation_velocity) # change in x rotates around y-axis

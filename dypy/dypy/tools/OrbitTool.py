@@ -75,7 +75,8 @@ class OrbitTool(Tool):
                 
                 parameter += parameter_increment        
         except Exception, detail:
-            print 'init_points()', type(detail), detail
+            pass
+            #print 'init_points()', type(detail), detail
 
     def draw_points(self):
         try:
