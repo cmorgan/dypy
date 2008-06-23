@@ -1,5 +1,5 @@
-import numpy
 from dypy.systems.Map import Map
+import numpy
 
 class CosineMap(Map):
     def __init__(self):

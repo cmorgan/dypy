@@ -85,10 +85,10 @@ class SystemPanel(wx.Panel):
 			
 			ranges.append((min, max))		
 
-		#if self.main.active_tool:
-	#		self.main.active_tool.tool.set_state_ranges(ranges)
-		#else:
-		#	utils.debug("SystemPanel: Unable to update state range.")
+		if self.main.active_tool:
+			self.main.active_tool.tool.set_state_ranges(ranges)
+		else:
+			utils.debug("SystemPanel: Unable to update state range.")
 	
 	def on_update_param(self, event = wx.CommandEvent()):
 		utils.debug("SystemPanel: Updating parameter range.")
@@ -101,7 +101,7 @@ class SystemPanel(wx.Panel):
 			
 			ranges.append((min, max))		
 
-		#if self.main.active_tool:
-	#		self.main.active_tool.tool.set_parameter_ranges(ranges)
-	#	else:
-	#		utils.debug("SystemPanel: Unable to update parameter range.")	
+		if self.main.active_tool:
+			self.main.active_tool.tool.set_parameter_ranges(ranges)
+		else:
+			utils.debug("SystemPanel: Unable to update parameter range.")	

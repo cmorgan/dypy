@@ -124,8 +124,9 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
             
                     glMatrixMode(GL_PROJECTION)
                     glLoadIdentity()
+                    
                     print 'ToolServer: Setting projection to', self.x_min, self.x_max, self.y_min, self.y_max, \
-                        -self.dimension_max, self.dimension_max        
+                        -self.dimension_max, self.dimension_max
                     glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max)             
                 
                 if self.clear_each_frame or self.iteration == 0:

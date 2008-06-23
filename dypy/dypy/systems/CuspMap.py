@@ -1,4 +1,5 @@
 from dypy.systems.Map import Map
+import numpy
 
 class CuspMap(Map):
     def __init__(self):

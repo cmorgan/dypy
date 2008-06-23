@@ -75,7 +75,7 @@ class MainPanel(wx.Panel):
 		self.nlds_about.SetValue(nlds.description)
 		self.update_demo_combo()
 		self.main.update_system_panel(nlds)
-		#self.main.update_tool_panel(nlds, self.main.active_tool)
+		self.main.update_tool_panel(nlds, self.main.active_tool)
 	
 	def update_demo_combo(self, event = wx.CommandEvent()):
 		nlds_index = self.nlds_combo.GetSelection()
