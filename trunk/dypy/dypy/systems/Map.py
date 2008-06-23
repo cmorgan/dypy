@@ -1,6 +1,3 @@
-import numpy
-import random
-
 class Map:
     def __init__(self, name, description=''):
         self.name = name

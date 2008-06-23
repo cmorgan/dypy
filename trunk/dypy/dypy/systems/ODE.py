@@ -4,6 +4,9 @@ class ODE():
         self.description = description
         self.integrate = self.integrate_runge_kutta
     
+    def iterate(self, state, parameters):
+        return self.derivative(self, state, parameters)
+    
     def derivative(self, state, parameters):
         assert 0, "must be defined"
     
