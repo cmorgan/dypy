@@ -5,9 +5,18 @@ import random
 class OrbitPoint():
     def __init__(self, **kwds):
         self.tool = kwds['tool']
-        self.parameter = kwds['parameter']
         self.state = self.get_random_state()
         self.age = self.get_random_age()
+        
+        # set non-varying parameters to their respective minimum,
+        # else set the varying parameter to value passed in        
+        self.parameters = numpy.zeros(len(self.tool.parameter_ranges))
+        
+        for i in xrange(0, len(self.parameters)):
+            if i == self.tool.parameter_index:
+                self.parameters[i] = kwds['varying_parameter']
+            else:
+                self.parameters[i] = self.tool.parameter_ranges[i][0]
     
     def get_random_age(self):
         return random.uniform(0, self.tool.age_max)
@@ -34,12 +43,22 @@ class OrbitTool(Tool):
         self.server.update_tool(self)
         
     def set_age_max(self, age_max):
-        self.age_max = age_max
-        self.server.update_tool(self)
+        self.points_lock.acquire()
+        
+        try:
+            self.age_max = age_max
+            self.server.update_tool(self)
+        finally:
+            self.points_lock.release()
     
     def set_density(self, density):
-        self.density = density
-        self.server.update_tool(self)
+        self.points_lock.acquire()
+        
+        try:
+            self.density = density
+            self.server.update_tool(self)
+        finally:
+            self.points_lock.release()
     
     def set_show_history(self, show_history):
         self.server.clear_each_frame = not(show_history)
@@ -63,6 +82,8 @@ class OrbitTool(Tool):
         self.server.set_axes_center(sum(pr)/2.0, sum(sr)/2.0, 0)
 
     def init_points(self):
+        self.points_lock.acquire()
+        
         try:
             self.points = []
             parameter_increment = (self.parameter_ranges[self.parameter_index][1] - \
@@ -71,16 +92,19 @@ class OrbitTool(Tool):
             
             for i in xrange(0, self.server.width):
                 for j in xrange(0, self.density):
-                    self.points.append(OrbitPoint(tool=self, parameter=parameter))
+                    self.points.append(OrbitPoint(tool=self, varying_parameter=parameter))
                 
                 parameter += parameter_increment        
         except Exception, detail:
             pass
-            #print 'init_points()', type(detail), detail
+        finally:
+            self.points_lock.release()
 
     def draw_points(self):
+        self.points_lock.acquire()
+        
         try:
-            from pyglet.gl import glBegin, glEnd, GL_POINTS, glColor4f, glVertex2f, glGetError, gluErrorString
+            from pyglet.gl import glBegin, glEnd, GL_POINTS, glColor4f, glVertex2f
             
             point_count = len(self.points)
             
@@ -92,17 +116,19 @@ class OrbitTool(Tool):
             for i in xrange(0, point_count):
                 p = self.points[i]
 
-                glColor4f(1, 1, 1, p.age / float(self.age_max*2.0))
-                glVertex2f(p.parameter, p.state[self.state_index])
+                glColor4f(1, 1, 1, p.age / self.age_max*2.0)
+                glVertex2f(p.parameters[self.parameter_index], p.state[self.state_index])
                 
-                p.state = self.system.iterate(p.state, (p.parameter))#, self.parameter_ranges[1][0]))
+                p.state = self.system.iterate(p.state, p.parameters)
                 p.age += 1
                 
                 if p.age >= self.age_max:
-                    self.points[i] = OrbitPoint(tool=self, parameter=p.parameter)
+                    self.points[i] = OrbitPoint(tool=self, varying_parameter=p.parameters[self.parameter_index])
             
             glEnd()
         except AttributeError, detail:
             pass
         except Exception, detail:
             print 'draw_points()', type(detail), detail
+        finally:
+            self.points_lock.release()

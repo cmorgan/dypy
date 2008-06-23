@@ -1,4 +1,5 @@
 import Pyro.core
+import threading
 
 class Tool(Pyro.core.ObjBase):      
     def __init__(self, **kwds):
@@ -12,27 +13,54 @@ class Tool(Pyro.core.ObjBase):
         self.parameter_ranges = [(0, 0)]
         self.state_ranges = [(0, 0)]
         
+        self.points_lock = threading.Lock()
+        
     def set_system(self, system):
-        print 'DynamicsTool: Set system to', system
-        self.server.window.set_caption(system.name)
-        self.system = system
-        self.server.update_tool(self)
+        self.points_lock.acquire()
+        
+        try:
+            print 'DynamicsTool: Set system to', system
+            self.server.window.set_caption(system.name)
+            self.system = system
+            self.server.update_tool(self)
+        finally:
+            self.points_lock.release()
     
     def set_parameter_index(self, parameter_index):
-        self.parameter_index = parameter_index
-        self.server.update_tool(self)
+        self.points_lock.acquire()
+        
+        try:
+            self.parameter_index = parameter_index
+            self.server.update_tool(self)
+        finally:
+            self.points_lock.release()
     
     def set_state_index(self, state_index):
-        self.state_index = state_index
-        self.server.update_tool(self)  
+        self.points_lock.acquire()
+        
+        try:
+            self.state_index = state_index
+            self.server.update_tool(self)
+        finally:
+            self.points_lock.release()
     
     def set_parameter_ranges(self, parameter_ranges):
-        self.parameter_ranges = parameter_ranges
-        self.server.update_tool(self)
+        self.points_lock.acquire()
+        
+        try:
+            self.parameter_ranges = parameter_ranges
+            self.server.update_tool(self)
+        finally:
+            self.points_lock.release()        
     
     def set_state_ranges(self, state_ranges):
-        self.state_ranges = state_ranges
-        self.server.update_tool(self)
+        self.points_lock.acquire()
+        
+        try:
+            self.state_ranges = state_ranges
+            self.server.update_tool(self)
+        finally:
+            self.points_lock.release()
     
     def init_points(self):
         assert 0, 'must be defined'
