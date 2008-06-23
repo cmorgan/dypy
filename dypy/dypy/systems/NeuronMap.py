@@ -20,4 +20,4 @@ class NeuronMap(Map):
         return ['x', 'y']    
 
     def get_parameter_names(self):
-        return 'k'
+        return ['alpha', 'mu', 'sigma']

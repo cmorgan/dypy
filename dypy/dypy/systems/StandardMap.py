@@ -7,7 +7,7 @@ class StandardMap(Map):
         
     def iterate(self, (x, y), k):
         y_new = y + k*numpy.sin(x)
-        return (x + y_new) % (2.0*pi), y_new % (2.0*pi)
+        return (x + y_new) % (2.0*numpy.pi), y_new % (2.0*numpy.pi)
     
     # 6/08, http://mathworld.wolfram.com/StandardMap.html
     def get_state_names(self):
