@@ -62,7 +62,6 @@ class MainWindow(wx.Frame):
 		self.Show()
 	
 	def add_toolbar(self):
-		return
 		utils.debug("MainWindow: Creating tool bar.")
 		toolbar = self.CreateToolBar()
 		toolbar.SetToolBitmapSize(size = (40, 40))
@@ -124,8 +123,8 @@ class MainWindow(wx.Frame):
 		utils.debug("MainWindow: Updating tool panel.")
 		self.active_tool = tool
 		self.active_tool.update_system(system)
-		self.notebook.RemovePage(2)
-		self.notebook.InsertPage(2, self.active_tool, self.active_tool.get_name())
+		#self.notebook.RemovePage(2)
+		#self.notebook.InsertPage(2, self.active_tool, self.active_tool.get_name())
 
 def show():
 	gui   = wx.PySimpleApp()
