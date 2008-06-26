@@ -3,7 +3,7 @@ import numpy
 
 class CosineMap(Map):
     def __init__(self):
-        Map.__init__(self, 'Cosine Map')
+        Map.__init__(self, 'Cosine Map', 'One-dimensional iterated map of a cosine function.')
 
     def iterate(self, x, r):
         return r * numpy.cos(x)

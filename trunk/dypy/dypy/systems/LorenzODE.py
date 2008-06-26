@@ -3,7 +3,7 @@ from dypy.systems.ODE import ODE
 
 class LorenzODE(ODE):
     def __init__(self):
-        ODE.__init__(self, 'Lorenz Attractor')
+        ODE.__init__(self, 'Lorenz Attractor', 'Simplified equations of atmospheric convection introduced by Edward Lorenz in 1963.')
     
     def derivative(self, (x, y, z), (sigma, rho, beta)):
         xdot = sigma * (y-x)

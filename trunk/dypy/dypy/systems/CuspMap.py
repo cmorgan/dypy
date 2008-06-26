@@ -3,7 +3,7 @@ import numpy
 
 class CuspMap(Map):
     def __init__(self):
-        Map.__init__(self, 'Cusp Map')
+        Map.__init__(self, 'Cusp Map', 'One-dimensional iterated map with a cusp-shaped maximum.')
 
     def iterate(self, x, r):
         return 1 - 2*numpy.sqrt(numpy.abs(x/r))

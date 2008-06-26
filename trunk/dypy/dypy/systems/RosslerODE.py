@@ -3,7 +3,7 @@ from dypy.systems.ODE import ODE
 
 class RosslerODE(ODE):
     def __init__(self):
-        ODE.__init__(self, 'Rossler Attractor')
+        ODE.__init__(self, 'Rossler Attractor', 'Model with behavior similar to the Lorenz attractor, introduced by Otto Rossler in 1976.')
     
     def derivative(self, (x, y, z), (a, b, c)):
         xdot = -y - z

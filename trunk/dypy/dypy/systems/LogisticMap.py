@@ -2,7 +2,7 @@ from dypy.systems.Map import Map
 
 class LogisticMap(Map):
     def __init__(self):
-        Map.__init__(self, 'Logistic Map')
+        Map.__init__(self, 'Logistic Map', 'Discrete-time population model demonstrating chaotic behavior, introduced by Robert May in 1976.')
 
     def iterate(self, x, r):
         return r * x * (1-x)
