@@ -3,7 +3,7 @@ from dypy.systems.ODE import ODE
 
 class ChuaODE(ODE):
     def __init__(self):
-        ODE.__init__(self, 'Chua\'s Circuit')
+        ODE.__init__(self, 'Chua\'s Circuit', 'Chua\'s circuit is a simple electronic circuit that exhibits chaotic behavior.')
     
     def f(self, x, m0, m1):
         if x >= 1:

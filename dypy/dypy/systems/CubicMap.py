@@ -2,7 +2,7 @@ from dypy.systems.Map import Map
 
 class CubicMap(Map):
     def __init__(self):
-        Map.__init__(self, 'Cubic Map')
+        Map.__init__(self, 'Cubic Map', 'One-dimensional iterated map of a cubic function.')
 
     def iterate(self, x, r):
         return r*x - x**3

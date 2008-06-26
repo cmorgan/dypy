@@ -3,7 +3,7 @@ from dypy.systems.Map import Map
 
 class NeuronMap(Map):
     def __init__(self):
-        Map.__init__(self, 'Neuron Map')
+        Map.__init__(self, 'Neuron Map', 'Simplified model of spiking activity in biological neurons.')
 
     def f(self, x, y, alpha):
         if x <= 0:

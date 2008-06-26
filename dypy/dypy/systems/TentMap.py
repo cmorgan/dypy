@@ -3,7 +3,7 @@ from dypy.systems.Map import Map
 
 class TentMap(Map):
     def __init__(self):
-        Map.__init__(self, "Tent Map")
+        Map.__init__(self, 'Tent Map', 'One-dimensional iterated map with the shape of a tent, behaves similar to the logistic map.')
 
     def iterate(self, x, r):
         if x > 0 and x < 0.5:

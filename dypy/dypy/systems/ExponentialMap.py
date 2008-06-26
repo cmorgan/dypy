@@ -3,7 +3,7 @@ import numpy
 
 class ExponentialMap(Map):
     def __init__(self):
-        Map.__init__(self, 'Exponential Map')
+        Map.__init__(self, 'Exponential Map', 'One-dimensional iterated map of an exponential function.')
 
     def iterate(self, x, r):
         return r * numpy.exp(x)
