@@ -3,10 +3,10 @@ class Map:
         self.name = name
         self.description = description
     
-    def iterate(self):
+    def iterate(self, state, parameters):
         assert 0, "must be defined"
     
-    def derivative(self):
+    def derivative(self, state, parameters):
         assert 0, "must be defined"
 
     def get_parameter_names(self):

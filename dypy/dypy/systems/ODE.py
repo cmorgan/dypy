@@ -4,7 +4,7 @@ class ODE():
         self.description = description
     
     def iterate(self, state, parameters):
-        return self.derivative(self, state, parameters)
+        return self.derivative(state, parameters)
     
     def derivative(self, state, parameters):
         assert 0, "must be defined"
