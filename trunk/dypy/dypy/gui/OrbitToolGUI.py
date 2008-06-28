@@ -1,98 +1,141 @@
 from dypy.tools.OrbitTool import OrbitTool
-import dypy.gui.utils as utils
+
 import Pyro.core
 import Pyro.naming
-import wx
+
+import wx, dypy
+import dypy.gui.Widgets as Widgets
 
 class OrbitToolGUI(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent, -1)
 		
+		# get tool from tool server
 		ns = Pyro.naming.NameServerLocator().getNS(host='localhost')
 		uri = ns.resolve('OrbitTool')
 		self.tool = uri.getAttrProxy()
+		dypy.debug("OrbitToolGUI", "Connected to server.")
 		
-		utils.debug("OrbitToolGUI: Initialized")
-        
-		#self.tool.set_age_max(1000)
-		#self.tool.set_density(4)
+		self.name = self.tool.name
+		self.description = self.tool.description
+		
+		self.set_parameter_ranges = self.tool.set_parameter_ranges
+		self.set_state_ranges = self.tool.set_state_ranges
+
+		# gui components: labels
+		state_label   = Widgets.LabelText(self, "Select State Axis:")
+		param_label   = Widgets.LabelText(self, "Select Varying Parameter:")
+		density_label = Widgets.LabelText(self, "Select Maximum Point Density:")
+		age_label     = Widgets.LabelText(self, "Select Maximum Point Age:")
+		mode_label    = Widgets.LabelText(self, "Select Visualization Mode:")
+		
+		# gui components: selection
+		self.state_choice = Widgets.ChoiceList(self)
+		self.param_choice = Widgets.ChoiceList(self)
+		
+		self.density_slider = Widgets.SimpleSlider(self, 4, 1, 10)
+		self.age_slider     = Widgets.SimpleSlider(self, 1000, 1, 2000)
+
+		self.mode_check = Widgets.Checkbox(self, "Show History")
 
 		sizer = wx.BoxSizer(wx.VERTICAL)
-
-		sizer.Add(wx.StaticText(self, wx.ID_ANY, "Select State Axis:"), 0, wx.ALIGN_LEFT)
-		self.state_choice = wx.ComboBox(self, wx.ID_ANY, choices=[""], style=wx.CB_DROPDOWN | wx.CB_READONLY)
-		sizer.Add(self.state_choice, 0, wx.EXPAND | wx.BOTTOM, 10)
-
-		sizer.Add(wx.StaticText(self, wx.ID_ANY, "Select Parameter:"), 0, wx.ALIGN_LEFT)
-		self.param_choice = wx.ComboBox(self, wx.ID_ANY, choices=[""], style=wx.CB_DROPDOWN | wx.CB_READONLY)
-		sizer.Add(self.param_choice, 0, wx.EXPAND | wx.BOTTOM, 10)
 		
-		sizer.Add(wx.StaticText(self, wx.ID_ANY, "Select Maximum Point Density:"), 0, wx.ALIGN_LEFT)
-		self.density_slider = wx.Slider(self, 1, 10, 4)
-		sizer.Add(self.density_slider, 0, wx.EXPAND)
+		sizer.Add(state_label, 0, wx.ALIGN_LEFT | wx.ALL, 4)
+		sizer.Add(self.state_choice, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
+		sizer.AddSpacer(2)
+		
+		sizer.Add(param_label, 0, wx.ALIGN_LEFT | wx.ALL, 4)
+		sizer.Add(self.param_choice, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
+		sizer.AddSpacer(10)
+		
+		sizer.Add(density_label, 0, wx.ALIGN_LEFT | wx.ALL, 4)
+		sizer.Add(self.density_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
+		sizer.AddSpacer(2)
+		
+		sizer.Add(age_label, 0, wx.ALIGN_LEFT | wx.ALL, 4)
+		sizer.Add(self.age_slider, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
+		sizer.AddSpacer(10)
+		
+		sizer.Add(mode_label, 0, wx.ALIGN_LEFT | wx.ALL, 4)
+		sizer.Add(self.mode_check, 0, wx.LEFT, 30)
+		
+		sizer.AddStretchSpacer(1)
+		
+		note = wx.StaticText(self, wx.ID_ANY, \
+		"* Minimum values used for fixed parameters in orbit display.")
+		note.SetFont(Widgets.ItalicFont(8))
+		
+		sizer.Add(note, 0, wx.ALIGN_RIGHT | wx.ALL, 4)
 
-		sizer.Add(wx.StaticText(self, wx.ID_ANY, "Select Maximum Point Age:"), 0, wx.ALIGN_LEFT)
-		self.age_slider = wx.Slider(self, 1, 2000, 1000)
-		sizer.Add(self.age_slider, 0, wx.EXPAND)
-
-		sizer.Add(wx.StaticText(self, wx.ID_ANY, "Select Visualization Mode:"), 0, wx.ALIGN_LEFT | wx.BOTTOM, 5)
-
-		self.mode_checkbox = wx.CheckBox(self, wx.ID_ANY, 'Show History')
-		sizer.Add(self.mode_checkbox, 0, wx.ALIGN_LEFT | wx.LEFT, 20)
-
+		# register event handling
 		wx.EVT_CHOICE(self, self.state_choice.GetId(), self.on_state_selected)
 		wx.EVT_CHOICE(self, self.param_choice.GetId(), self.on_param_selected)
-		wx.EVT_COMMAND_SCROLL(self, self.density_slider.GetId(), self.on_density_selected)
-		wx.EVT_COMMAND_SCROLL(self, self.age_slider.GetId(), self.on_age_selected)
-		wx.EVT_CHECKBOX(self, self.mode_checkbox.GetId(), self.on_mode_selected)
-
-		utils.debug("OrbitToolGUI: Trigger control updates.")
-		self.trigger(self.density_slider)
-		self.trigger(self.age_slider)
-		self.trigger(self.mode_checkbox)
-		self.SetSizerAndFit(sizer)	
-
-	def trigger(self, obj):
-		event = wx.CommandEvent(wx.wxEVT_SCROLL_THUMBRELEASE)
-		event.SetEventObject(obj)
-		event.SetId(obj.GetId())
-		obj.GetEventHandler().ProcessEvent(event)
 		
-	def update_system(self, system):
-		utils.debug("ObitToolGUI: Update system.")
-		self.param_choice.update(system.get_parameter_names())
-		self.state_choice.update(system.get_state_names())
-
-	def on_state_selected(self, event):
-		utils.debug("OrbitToolGUI: State axis selected.")
-		self.tool.set_state_index(self.state_choice.GetSelection())
+		wx.EVT_COMMAND_SCROLL(self, self.density_slider.GetId(), \
+		self.on_density_changed)
 		
-	def on_param_selected(self, event):
-		utils.debug("OrbitToolGUI: Parameter axis selected.")
-		self.tool.set_parameter_index(self.param_choice.GetSelection())
+		wx.EVT_COMMAND_SCROLL(self, self.age_slider.GetId(), \
+		self.on_age_changed)
+		
+		wx.EVT_CHECKBOX(self, self.mode_check.GetId(), self.on_mode_selected)
+		
+		# trigger event handling for visualization settings
+		self.on_density_changed()
+		self.on_age_changed()
+		self.on_mode_selected()
+		
+		self.SetSizerAndFit(sizer)
+		
+		dypy.debug("OrbitToolGUI", "Initialized.")
 
-	def on_density_selected(self, event):
-		utils.debug("OrbitToolGUI: Density selected.")
-		self.tool.set_density(self.density_slider.GetValue())
-
-	def on_age_selected(self, event):
-		utils.debug("OrbitToolGUI: Age selected.")
-		self.tool.set_age_max(self.age_slider.GetValue())
-
-	def on_mode_selected(self, event):
-		utils.debug("OrbitToolGUI: Mode selected.")
-		self.tool.set_show_history(self.mode_checkbox.GetValue())		
-	"""
 	def update_system(self, system):
-		utils.debug("OrbitToolGUI: Updating tool to use %s." % system.name)
+		# update state axis choices
+		states = system.get_state_names()
+		self.state_choice.SetItems(states)
+		self.state_choice.SetSelection(0)
+		
+		# update parameter choices
+		params = system.get_parameter_names()
+		self.param_choice.SetItems(params)
+		self.param_choice.SetSelection(0)
+		
+		dypy.debug("OrbitToolGUI", "Updated for system %s." % system.name)
+		
+		# set system in tool
 		self.tool.set_system(system)
-	
-	def get_name(self):
-		return self.tool.name
-	
-	def get_description(self):
-		return self.tool.description
+		
+		# trigger state/param choice event handling
+		self.on_state_selected()
+		self.on_param_selected()
 
-	def start(self):
-		self.tool.start()
-	"""
+	def on_state_selected(self, event = wx.CommandEvent()):
+		index = self.state_choice.GetSelection()
+		self.tool.set_state_index(index)
+
+		dypy.debug("OrbitToolGUI", "State axis is now %s." \
+		% self.state_choice.GetStringSelection())
+
+	def on_param_selected(self, event = wx.CommandEvent()):
+		index = self.param_choice.GetSelection()
+		self.tool.set_parameter_index(index)
+		
+		dypy.debug("OrbitToolGUI", "Parameter is now %s." \
+		% self.param_choice.GetStringSelection())
+
+	def on_density_changed(self, event = wx.CommandEvent()):
+		density = self.density_slider.GetValue()
+		self.tool.set_density(density)
+		
+		dypy.debug("OrbitToolGUI", "Density is now %d." % density )
+
+	def on_age_changed(self, event = wx.CommandEvent()):
+		age = self.age_slider.GetValue()
+		self.tool.set_age_max(age)
+		
+		dypy.debug("OrbitToolGUI", "Age is now %d." % age )
+	
+	def on_mode_selected(self, event = wx.CommandEvent()):
+		mode = self.mode_check.GetValue()
+		self.tool.set_show_history(mode)
+		
+		dypy.debug("ObritToolGUI", "Show history set to %s." % str(mode))
