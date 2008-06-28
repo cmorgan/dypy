@@ -1,5 +1,6 @@
 import Pyro.core
 import threading
+import dypy
 
 class Tool(Pyro.core.ObjBase):      
     def __init__(self, **kwds):
@@ -16,13 +17,14 @@ class Tool(Pyro.core.ObjBase):
         self.points_lock = threading.Lock()
         
     def set_system(self, system):
+        dypy.debug("DynamicsTool", "Attempting to update system.")
         self.points_lock.acquire()
         
         try:
-            print 'DynamicsTool: Set system to', system
             self.server.window.set_caption(system.name)
             self.system = system
             self.server.update_tool(self)
+            dypy.debug("DynamicsTool", "System set to %s." % system.name)
         finally:
             self.points_lock.release()
     
@@ -32,6 +34,7 @@ class Tool(Pyro.core.ObjBase):
         try:
             self.parameter_index = parameter_index
             self.server.update_tool(self)
+            dypy.debug("DynamicsTool", "Parameter index updated.")
         finally:
             self.points_lock.release()
     
@@ -41,6 +44,7 @@ class Tool(Pyro.core.ObjBase):
         try:
             self.state_index = state_index
             self.server.update_tool(self)
+            dypy.debug("DynamicsTool", "State index updated.")
         finally:
             self.points_lock.release()
     
@@ -50,6 +54,7 @@ class Tool(Pyro.core.ObjBase):
         try:
             self.parameter_ranges = parameter_ranges
             self.server.update_tool(self)
+            dypy.debug("DynamicsTool", "Parameter ranges updated.")
         finally:
             self.points_lock.release()        
     
@@ -59,6 +64,7 @@ class Tool(Pyro.core.ObjBase):
         try:
             self.state_ranges = state_ranges
             self.server.update_tool(self)
+            dypy.debug("DynamicsTool", "State ranges updated.")
         finally:
             self.points_lock.release()
     

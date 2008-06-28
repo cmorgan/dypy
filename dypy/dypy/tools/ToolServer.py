@@ -1,6 +1,7 @@
 import Pyro.core
 import Pyro.naming
 import threading
+import dypy
 
 gl_lock = threading.Lock()
 
@@ -17,8 +18,8 @@ class PyroServer(threading.Thread):
     def waitUntilStarted(self):
         self.starter.waitUntilStarted()
         self.daemon.useNameServer(Pyro.naming.NameServerLocator().getNS())
-        print 'PyroServer: Listening on', self.daemon.port
-        
+        dypy.debug("PyroServer", "Listening on port " + str(self.daemon.port))
+
 class ToolServer(Pyro.core.ObjBase, threading.Thread):    
     def __init__(self, **kwds):
         Pyro.core.ObjBase.__init__(self)        
@@ -94,9 +95,9 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         glEnable(GL_BLEND)
         
         # gl diagnostics
-        print 'GL version:', gl_info.get_version()
-        print 'GL renderer:', gl_info.get_renderer()
-        print 'Pyglet version:', pyglet.version
+        dypy.debug("ToolServer", "GL version is %s." % gl_info.get_version())
+        dypy.debug("ToolServer", "GL renderer is %s." % gl_info.get_renderer())
+        dypy.debug("ToolServer", "Pyglet version is %s." % pyglet.version)
         
         # event flags
         self.ready = True
@@ -125,8 +126,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                     glMatrixMode(GL_PROJECTION)
                     glLoadIdentity()
                     
-                    print 'ToolServer: Setting projection to', self.x_min, self.x_max, self.y_min, self.y_max, \
-                        -self.dimension_max, self.dimension_max
+                    dypy.debug("ToolServer", "Setting projection to %.1f %.1f %.1f %.1f %.1f %.1f" % (self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max))
                     glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max)             
                 
                 if self.clear_each_frame or self.iteration == 0:

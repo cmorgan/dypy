@@ -1,33 +1,31 @@
-import dypy.gui.utils as utils
-import wx
+import wx, dypy
+import dypy.gui.Widgets as Widgets
 
+# main panel for selecting system, demo, and tool
 class MainPanel(wx.Panel):
-	def __init__(self, parent):
+	def __init__(self, main, parent):
 		wx.Panel.__init__(self, parent, wx.ID_ANY)
-		self.main = utils.get_main_window(parent)
-
-		utils.debug("MainPanel: Panel initialized.")
+		self.main = main
 		
+		# gui components
+		# combo components contain loaded module/class names
+		# about components contain description of current selection
+		self.nlds_label = Widgets.LabelText(self, "Select a dynamical system:")
+		self.nlds_combo = Widgets.ChoiceList(self)
+		self.nlds_about = Widgets.AboutText(self)
+
+		self.demo_label = Widgets.LabelText(self, "Select a demo:")
+		self.demo_combo = Widgets.ChoiceList(self)
+		self.demo_about = Widgets.AboutText(self)
+
+		self.tool_label = Widgets.LabelText(self, "Select a visualization tool:")
+		self.tool_combo = Widgets.ChoiceList(self)
+		self.tool_about = Widgets.AboutText(self)
+
+		# begin component layout
 		sizer = wx.BoxSizer(wx.VERTICAL)
-		
-		self.nlds_label = wx.StaticText(self, wx.ID_ANY, "Select a dynamical system:")
-		self.nlds_combo = wx.Choice(self, wx.ID_ANY, choices = [])
-		self.nlds_about = wx.TextCtrl(self, wx.ID_ANY, value = "", style = wx.TE_READONLY | wx.TE_WORDWRAP | wx.TE_MULTILINE)
-		self.nlds_about.SetInitialSize(size = (10, 20))
-		self.nlds_about.Disable()
-		
-		self.demo_label = wx.StaticText(self, wx.ID_ANY, "Select a demo:")
-		self.demo_combo = wx.Choice(self, wx.ID_ANY, choices = [])
-		self.demo_about = wx.TextCtrl(self, wx.ID_ANY, value = "", style = wx.TE_READONLY | wx.TE_WORDWRAP | wx.TE_MULTILINE)
-		self.demo_about.SetInitialSize(size = (10, 20))
-		self.demo_about.Disable()
 
-		self.tool_label = wx.StaticText(self, wx.ID_ANY, "Select a visualization tool:")
-		self.tool_combo = wx.Choice(self, wx.ID_ANY, choices = [])
-		self.tool_about = wx.TextCtrl(self, wx.ID_ANY, value = "", style = wx.TE_READONLY | wx.TE_WORDWRAP | wx.TE_MULTILINE, size = (10, 10))
-		self.tool_about.SetInitialSize(size = (10, 20))
-		self.tool_about.Disable()
-				
+		# add system components (nlds: nonlinear dynamical system)
 		sizer.Add(self.nlds_label, 0, wx.ALIGN_LEFT | wx.TOP | wx.LEFT, 4)
 		sizer.AddSpacer(2)
 		sizer.Add(self.nlds_combo, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
@@ -35,6 +33,7 @@ class MainPanel(wx.Panel):
 		sizer.Add(self.nlds_about, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
 		sizer.AddSpacer(10)
 		
+		# add demo components
 		sizer.Add(self.demo_label, 0, wx.ALIGN_LEFT | wx.TOP | wx.LEFT, 4)
 		sizer.AddSpacer(2)
 		sizer.Add(self.demo_combo, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
@@ -42,6 +41,7 @@ class MainPanel(wx.Panel):
 		sizer.Add(self.demo_about, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
 		sizer.AddSpacer(10)
 
+		# add tool components
 		sizer.Add(self.tool_label, 0, wx.ALIGN_LEFT | wx.TOP | wx.LEFT, 4)
 		sizer.AddSpacer(2)
 		sizer.Add(self.tool_combo, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
@@ -50,86 +50,127 @@ class MainPanel(wx.Panel):
 		sizer.AddSpacer(10)
 		
 		self.SetSizer(sizer)
-		
-		utils.debug("MainPanel: Initializing event triggers.")
-		wx.EVT_CHOICE(self, self.nlds_combo.GetId(), self.update_system_about)
-		wx.EVT_CHOICE(self, self.demo_combo.GetId(), self.update_demo_about)
-		wx.EVT_CHOICE(self, self.tool_combo.GetId(), self.update_tool_about)
 
-		self.update_system_combo()
-		self.update_tool_combo()
-	
-	def update_system_combo(self, event = wx.CommandEvent()):
-		utils.debug("MainPanel: Updating system choice box.")
+		# set event handlers for choices
+		wx.EVT_CHOICE(self, self.nlds_combo.GetId(), self.update_system)
+		wx.EVT_CHOICE(self, self.demo_combo.GetId(), self.update_demo)
+		wx.EVT_CHOICE(self, self.tool_combo.GetId(), self.update_tool)
+
+		# populate the system, demo, and tool choices
+		# init_systems will populate the demo choices
+		self.init_systems()
+		self.init_tools()
+		
+		dypy.debug("MainPanel", "Panel initialized.")
+
+	# disables system, demo, and tool selection
+	# called to prevent selection while a tool is running
+	def lockdown(self):
+		self.nlds_combo.Disable()
+		self.demo_combo.Disable()
+		self.tool_combo.Disable()
+		
+		dypy.debug("MainPanel", "Selection disabled.")
+
+	# renables selection
+	# called after tool is stopped
+	def unlock(self):
+		self.nlds_combo.Enable()
+		self.demo_combo.Enable()
+		self.tool_combo.Enable()
+		
+		dypy.debug("MainPanel", "Selection enabled.")
+
+	# populate system choices from main window
+	def init_systems(self):
 		names = [ system.name for system in self.main.systems ]
 		self.nlds_combo.SetItems(names)
 		self.nlds_combo.SetSelection(0)
-		self.update_system_about()
+		
+		dypy.debug("MainPanel", "System selection initialized.")
+		self.update_system()
 
-	def update_system_about(self, event = wx.CommandEvent()):
+	# updates system description and valid demos
+	def update_system(self, event = wx.CommandEvent()):
 		nlds_index = self.nlds_combo.GetSelection()
 		nlds = self.main.systems[nlds_index]
-		
-		utils.debug("MainPanel: Updating system description for %s." % nlds.name)
-		
 		self.nlds_about.SetValue(nlds.description)
-		self.update_demo_combo()
+
+		dypy.debug("MainPanel", "System is now %s." % nlds.name)
+		
+		# populate demos for selected system
+		self.init_demos()
+		
+		# let main window update the system panel
 		self.main.update_system_panel(nlds)
-		self.main.update_tool_panel(nlds, self.main.active_tool)
-	
-	def update_demo_combo(self, event = wx.CommandEvent()):
+
+	# populate demo choices from main window
+	def init_demos(self):
 		nlds_index = self.nlds_combo.GetSelection()
 		nlds = self.main.systems[nlds_index]
-		
-		utils.debug("MainPanel: Updating demo choice box for %s." % nlds.name)
-		
-		system_prefix = nlds.__module__.split('.')[-1]
-		names  = []
 
+		# get system prefix from demo name
+		# should be SystemName_DemoName.py
+		system_prefix = nlds.__module__.split('.')[-1]
+		names = []
+
+		# checks each loaded demo for name match
 		for demo in self.main.demos:
 			demo_module = demo.__module__.split('.')[-1]
 			demo_prefix = demo_module.split('_')[0]
 			
 			if demo_prefix == system_prefix:
 				names.append(demo.name)
-
+			
 		names.append("Custom Parameter Settings")
 		
 		self.demo_combo.SetItems(names)
 		self.demo_combo.SetSelection(0)
-		self.update_demo_about()
-	
-	def update_demo_about(self, event = wx.CommandEvent()):
-		demo_name = self.demo_combo.GetStringSelection()
-
-		utils.debug("MainPanel: Updating demo description for %s." % demo_name)
 		
+		dypy.debug("MainPanel", "Found %d demos for %s." %(len(names), nlds.name))
+		
+		# update description of current demo
+		self.update_demo()
+
+	# updates demo description and sets system parameter values
+	def update_demo(self, event = wx.CommandEvent()):
+		demo_name = self.demo_combo.GetStringSelection()
+		
+		dypy.debug("MainPanel", "Demo is now %s." % demo_name)
+
+		# set custom parameter settings about message
 		if demo_name == "Custom Parameter Settings":
-			self.demo_about.SetValue("Manually enter custom parameter settings on the %s tab." % self.nlds_combo.GetStringSelection())
+			self.demo_about.SetValue("Manually enter custom parameter " + \
+			"settings on the %s tab." % self.nlds_combo.GetStringSelection())
 			return
 		
+		# find demo class reference by name
 		for demo in self.main.demos:
 			if demo.name == demo_name:
 				self.demo_about.SetValue(demo.description)
-				return	
+				self.main.update_parameters(demo)
+				return
 
-	def update_tool_combo(self, event = wx.CommandEvent()):
-		utils.debug("MainPanel: Updating tool choice box.")
-		#names = [ tool.get_name() for tool in self.main.tools ]
-		#self.tool_combo.SetItems(names)
-		#self.tool_combo.SetSelection(0)
-		#self.update_tool_about()
-		pass
+	# populate tool choice from main window
+	def init_tools(self):
+		names = [ tool.name for tool in self.main.tools ]
+		self.tool_combo.SetItems(names)
+		self.tool_combo.SetSelection(0)
 		
-	def update_tool_about(self, event = wx.CommandEvent()):
+		dypy.debug("MainPanel", "Tool selection initialized.")
+		self.update_tool()
+
+	# update tool description and tool panel
+	def update_tool(self, event = wx.CommandEvent()):
 		tool_index = self.tool_combo.GetSelection()
 		tool = self.main.tools[tool_index]
-
+		
 		nlds_index = self.nlds_combo.GetSelection()
 		nlds = self.main.systems[nlds_index]
 		
-		utils.debug("MainPanel: Updating tool description for %s." % tool.get_name())
+		self.tool_about.SetValue(tool.description)
 		
-		self.tool_about.SetValue(tool.get_description())
-		self.update_demo_combo()
-		self.main.update_tool_panel(nlds, tool)	
+		dypy.debug("MainPanel", "Tool is now %s" % tool.name)
+		
+		# let main window update the tool panel
+		self.main.update_tool_panel(nlds, tool)

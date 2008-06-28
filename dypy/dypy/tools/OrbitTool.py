@@ -1,6 +1,7 @@
 from dypy.tools.Tool import Tool
 import numpy
 import random
+import dypy
 
 class OrbitPoint():
     def __init__(self, **kwds):
@@ -34,14 +35,14 @@ class OrbitPoint():
 class OrbitTool(Tool):
     def __init__(self, **kwds):
         Tool.__init__(self, name='Orbit Visualization', description='An animated orbit diagram.', server=kwds['server'])
-        print 'OrbitTool: Initialized', self
+        dypy.debug("OrbitTool", "Initialized.")
         
         self.age_max = 1000  
         self.density = 3
         self.server.hide_axes = True
         self.server.clear_each_frame = True
         self.server.update_tool(self)
-        
+
     def set_age_max(self, age_max):
         self.points_lock.acquire()
         
