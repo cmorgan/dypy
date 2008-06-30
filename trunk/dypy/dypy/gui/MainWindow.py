@@ -134,9 +134,46 @@ class MainWindow(wx.Frame):
 
 	def on_load_demo(self, event):
 		dypy.debug("MainWindow", "Loading demo from file.")
+		
+		import shelve
+		shelf = shelve.open('demo.py')
+		
+		self.load_control(shelf, 'state_min_controls', self.system_panel.state_min_controls)
+		self.load_control(shelf, 'state_max_controls', self.system_panel.state_max_controls)
+		self.load_control(shelf, 'param_min_controls', self.system_panel.param_min_controls)
+		self.load_control(shelf, 'param_max_controls', self.system_panel.param_max_controls)
+		
+		shelf.close()
 
 	def on_save_demo(self, event):
 		dypy.debug("MainWindow", "Saving demo to file.")
+			
+		import shelve
+		shelf = shelve.open('demo.py')
+		
+		self.save_control(shelf, 'state_min_controls', self.system_panel.state_min_controls)
+		self.save_control(shelf, 'state_max_controls', self.system_panel.state_max_controls)
+		self.save_control(shelf, 'param_min_controls', self.system_panel.param_min_controls)
+		self.save_control(shelf, 'param_max_controls', self.system_panel.param_max_controls)		
+		
+		shelf.close()
+		
+	def load_control(self, shelf, key, controls):
+		values = shelf[key]
+		
+		for i in range(0, len(self.system_panel.state_names)):
+			controls[i].SetValue(values[i])
+		
+		self.system_panel.update_param()
+		self.system_panel.update_state()
+	
+	def save_control(self, shelf, key, controls):
+		values = []
+		
+		for i in range(0, len(self.system_panel.state_names)):
+			values.append(controls[i].GetValue())
+				
+		shelf[key] = values	
 	
 	def on_view_help(self, event):
 		dypy.debug("MainWindow", "Displaying help.")

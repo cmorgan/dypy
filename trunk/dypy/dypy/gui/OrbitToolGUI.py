@@ -34,7 +34,7 @@ class OrbitToolGUI(wx.Panel):
 		self.param_choice = Widgets.ChoiceList(self)
 		
 		self.density_slider = Widgets.SimpleSlider(self, 4, 1, 10)
-		self.age_slider     = Widgets.SimpleSlider(self, 1000, 1, 2000)
+		self.age_slider     = Widgets.SimpleSlider(self, 1000, 1, 10000)
 
 		self.mode_check = Widgets.Checkbox(self, "Show History")
 

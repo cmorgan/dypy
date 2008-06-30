@@ -4,7 +4,7 @@ class ODE():
         self.description = description
     
     def iterate(self, state, parameters):
-        return self.derivative(state, parameters)
+        return self.integrate_euler(state, parameters, 0.1)
     
     def derivative(self, state, parameters):
         assert 0, "must be defined"
