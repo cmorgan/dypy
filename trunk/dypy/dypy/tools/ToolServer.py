@@ -1,6 +1,7 @@
 import Pyro.core
 import Pyro.naming
 import threading
+import time
 import dypy
 
 gl_lock = threading.Lock()
@@ -30,8 +31,6 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.ready = 0
     
     def waitUntilStarted(self):
-        import time
-        
         while not self.ready:
             time.sleep(1)   
     
@@ -42,10 +41,19 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
     def get_tools(self):
         return self.tools
     
+    def pause(self):
+        self.window_paused = True
+        self.window.set_visible(False)
+    
+    def unpause(self):
+        self.window_paused = False
+        self.window.set_visible(True)
+    
     def run(self):
         import pyglet
         pyglet.options['debug_gl'] = True        
         
+        from dypy.tools.PortraitTool import PortraitTool
         from dypy.tools.OrbitTool import OrbitTool
         from pyglet.gl import glBlendFunc, glEnable, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, \
             GL_BLEND, glClear, GL_COLOR_BUFFER_BIT, glMatrixMode, GL_PROJECTION, GL_MODELVIEW, \
@@ -54,7 +62,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         import pyglet.window
         import select
         
-        self.window = pyglet.window.Window(width=self.width, height=self.height)
+        self.window = pyglet.window.Window(width=self.width, height=self.height, visible=False)
         self.window.on_resize = self.on_resize
         self.window.on_close = self.on_close
         self.window.on_key_press = self.on_key_press
@@ -84,11 +92,13 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         # create tools and connect them to server
         self.server.daemon.connect(self, 'ToolServer')
         
-        t = OrbitTool(server=self)
-        self.server.daemon.connect(OrbitTool(server=self), 'OrbitTool')
-        self.update_tool(t)
+        t = PortraitTool(server=self)
+        self.server.daemon.connect(t, 'PortraitTool')
         
-        self.tools = ['OrbitTool']
+        t = OrbitTool(server=self)
+        self.server.daemon.connect(t, 'OrbitTool')
+        
+        self.update_tool(t)
         
         # setup alpha blending
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -103,6 +113,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.ready = True
         self.tool_updated = False
         self.window_resized = False
+        self.window_paused = True
 
         while not self.window.has_exit:
             pyglet.clock.tick()          
@@ -152,11 +163,12 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                 glTranslatef(-self.x_center, -self.y_center, -self.z_center)    
     
                 # tell the tool to draw its content
-                self.tool.draw_points()
+                if not self.window_paused:
+                    self.tool.draw_points()
     
-                # iteration is done, swap display buffers
-                self.iteration += 1
-                self.window.flip()
+                    # iteration is done, swap display buffers
+                    self.iteration += 1
+                    self.window.flip()
     
                 # process server requests
                 socks = self.server.daemon.getServerSockets()
