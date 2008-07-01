@@ -1,26 +1,11 @@
-from dypy.tools.OrbitTool import OrbitTool
-
-import Pyro.core
-import Pyro.naming
+from dypy.gui.ToolGUI import ToolGUI
 
 import wx, dypy
 import dypy.gui.Widgets as Widgets
 
-class OrbitToolGUI(wx.Panel):
+class OrbitToolGUI(ToolGUI):
 	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, -1)
-		
-		# get tool from tool server
-		ns = Pyro.naming.NameServerLocator().getNS(host='localhost')
-		uri = ns.resolve('OrbitTool')
-		self.tool = uri.getAttrProxy()
-		dypy.debug("OrbitToolGUI", "Connected to server.")
-		
-		self.name = self.tool.name
-		self.description = self.tool.description
-		
-		self.set_parameter_ranges = self.tool.set_parameter_ranges
-		self.set_state_ranges = self.tool.set_state_ranges
+		ToolGUI.__init__(self, parent, 'OrbitTool')
 
 		# gui components: labels
 		state_label   = Widgets.LabelText(self, "Select State Axis:")

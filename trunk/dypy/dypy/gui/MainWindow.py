@@ -1,6 +1,7 @@
 from dypy.gui.MainPanel import MainPanel
 from dypy.gui.SystemPanel import SystemPanel
 from dypy.gui.OrbitToolGUI import OrbitToolGUI
+from dypy.gui.PortraitToolGUI import PortraitToolGUI
 
 import wx, os.path
 import dypy, dypy.systems, dypy.demos
@@ -56,7 +57,7 @@ class MainWindow(wx.Frame):
 		self.demos = get_demos()
 		dypy.debug("MainWindow", "Loaded %d demos." % len(self.demos))
 		
-		self.tools = [OrbitToolGUI(self.notebook)]
+		self.tools = [OrbitToolGUI(self.notebook), PortraitToolGUI(self.notebook)]
 		self.active_tool = self.tools[0]
 		dypy.debug("MainWindow", "Loaded %d tools." % len(self.tools))
 	
@@ -112,6 +113,7 @@ class MainWindow(wx.Frame):
 		# make tool panel active
 		self.notebook.SetSelection(2)
 		
+		self.server.unpause()
 		dypy.debug("MainWindow", "Visualization started.\n")
 
 	# called when stop visualization clicked
@@ -127,6 +129,7 @@ class MainWindow(wx.Frame):
 		# make system panel active
 		self.notebook.SetSelection(0)
 		
+		self.server.pause()
 		dypy.debug("MainWindow", "Visualization stopped.\n")
 
 	def on_load_system(self, event):
@@ -144,6 +147,9 @@ class MainWindow(wx.Frame):
 		self.load_control(shelf, 'param_max_controls', self.system_panel.param_max_controls)
 		
 		shelf.close()
+		
+		self.system_panel.update_param()
+		self.system_panel.update_state()
 
 	def on_save_demo(self, event):
 		dypy.debug("MainWindow", "Saving demo to file.")
@@ -163,9 +169,6 @@ class MainWindow(wx.Frame):
 		
 		for i in range(0, len(self.system_panel.state_names)):
 			controls[i].SetValue(values[i])
-		
-		self.system_panel.update_param()
-		self.system_panel.update_state()
 	
 	def save_control(self, shelf, key, controls):
 		values = []
@@ -211,7 +214,7 @@ class MainWindow(wx.Frame):
 		self.active_tool = tool
 		
 		# set system for active tool
-		#self.active_tool.update_system(system)
+		self.active_tool.update_system(system)
 		
 		# insert tool gui into notebook display
 		self.notebook.RemovePage(2)
