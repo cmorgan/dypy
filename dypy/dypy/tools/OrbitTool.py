@@ -41,7 +41,6 @@ class OrbitTool(Tool):
         self.density = 3
         self.server.hide_axes = True
         self.server.clear_each_frame = True
-        self.server.update_tool(self)
 
     def set_age_max(self, age_max):
         self.points_lock.acquire()
@@ -86,11 +85,16 @@ class OrbitTool(Tool):
         self.points_lock.acquire()
         
         try:
+            # create and initialize random points
             self.points = []
+            
+            # set parameter increment for each successive point on x-axis
             parameter_increment = (self.parameter_ranges[self.parameter_index][1] - \
                                    self.parameter_ranges[self.parameter_index][0]) / float(self.server.width)
-            parameter = self.parameter_ranges[self.parameter_index][0]
             
+            # set initial parameter
+            parameter = self.parameter_ranges[self.parameter_index][0]
+
             for i in xrange(0, self.server.width):
                 for j in xrange(0, self.density):
                     self.points.append(OrbitPoint(tool=self, varying_parameter=parameter))
@@ -98,6 +102,7 @@ class OrbitTool(Tool):
                 parameter += parameter_increment        
         except Exception, detail:
             pass
+            #print 'init_points()', type(detail), detail
         finally:
             self.points_lock.release()
 
@@ -106,15 +111,10 @@ class OrbitTool(Tool):
         
         try:
             from pyglet.gl import glBegin, glEnd, GL_POINTS, glColor4f, glVertex2f
-            
-            point_count = len(self.points)
-            
-            if point_count == 0:
-                return
                    
             glBegin(GL_POINTS)
                
-            for i in xrange(0, point_count):
+            for i in xrange(0, len(self.points)):
                 p = self.points[i]
 
                 glColor4f(1, 1, 1, p.age / (self.age_max*2.0))
