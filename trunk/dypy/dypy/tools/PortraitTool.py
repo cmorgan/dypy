@@ -3,7 +3,7 @@ import numpy
 import random
 import dypy
 
-class PhasePoint():
+class PortraitPoint():
     def __init__(self, **kwds):
         tool = kwds['tool']
 
@@ -14,14 +14,12 @@ class PhasePoint():
 
 class PortraitTool(Tool):
     def __init__(self, **kwds):
-        Tool.__init__(self, name='Phase Portrait', description='bla', server=kwds['server'])
+        Tool.__init__(self, name='Phase Portrait Visualization', description='An animated phase space portrait.', server=kwds['server'])
         dypy.debug('PortraitTool', 'initialized')
         
         self.density = 100
         self.age_max = 1000
         self.server.hide_axes = False
-        self.server.clear_each_frame = False
-        self.server.update_tool(self)
     
     def set_parameter_ranges(self, parameter_ranges):
         Tool.set_parameter_ranges(self, parameter_ranges)
@@ -39,18 +37,25 @@ class PortraitTool(Tool):
         self.points_lock.acquire()
         
         try:
+            # disable clearing points each frame when portrait tool is used
+            # set here since it's not toggleable via the gui
+            self.server.clear_each_frame = False
+            self.server.iteration = 0
+            
+            # create and initialize random points
             self.points = []
     
             for i in xrange(0, self.density):
-                self.points.append(PhasePoint(tool=self))
+                self.points.append(PortraitPoint(tool=self))
         except Exception, detail:
-            print 'init_points()', type(detail), detail
+            pass
+            #print 'init_points()', type(detail), detail
         finally:
             self.points_lock.release()
 
     def draw_points(self):
         self.points_lock.acquire()
-        
+
         try:
             from pyglet.gl import glBegin, GL_POINTS, glColor4f, glVertex3f, glEnd
             
@@ -70,7 +75,7 @@ class PortraitTool(Tool):
                 glVertex3f(p.state[self.state_index], p.state[self.state_index+1], p.age)
                 
                 if p.age >= self.age_max:
-                    self.points[i] = PhasePoint(tool=self)
+                    self.points[i] = PortraitPoint(tool=self)
         
             glEnd()
         except AttributeError, detail:

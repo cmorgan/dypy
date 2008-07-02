@@ -69,6 +69,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.window.on_mouse_drag = self.on_mouse_drag
         self.window.on_mouse_scroll = self.on_mouse_scroll
         
+        # create and wait for object server
         self.server = PyroServer()
         self.server.start()
         self.server.waitUntilStarted()
