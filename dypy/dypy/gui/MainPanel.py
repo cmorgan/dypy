@@ -174,3 +174,6 @@ class MainPanel(wx.Panel):
 		
 		# let main window update the tool panel
 		self.main.update_tool_panel(nlds, tool)
+		
+		self.main.system_panel.update_state()
+		self.main.system_panel.update_param()

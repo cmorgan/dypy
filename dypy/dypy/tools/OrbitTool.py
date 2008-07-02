@@ -117,7 +117,7 @@ class OrbitTool(Tool):
             for i in xrange(0, point_count):
                 p = self.points[i]
 
-                glColor4f(1, 1, 1, p.age / self.age_max*2.0)
+                glColor4f(1, 1, 1, p.age / (self.age_max*2.0))
                 glVertex2f(p.parameters[self.parameter_index], p.state[self.state_index])
                 
                 p.state = self.system.iterate(p.state, p.parameters)
