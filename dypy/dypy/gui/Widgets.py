@@ -125,3 +125,101 @@ class Checkbox(wx.CheckBox):
 	def __init__(self, parent, label):
 		wx.CheckBox.__init__(self, parent, wx.ID_ANY, label)
 		self.SetFont(PlainFont(10))
+
+# class for saving demos
+# a little big to be in the widgets file...
+class SaveDialog(wx.Dialog):
+	def __init__(self, parent):
+		wx.Dialog.__init__(self, parent, wx.ID_ANY, "Save Demo to File", \
+		style = wx.DEFAULT_DIALOG_STYLE)
+		self.SetSize((400, 300))
+		
+		self.default_dir  = os.path.join(dypy.__path__[0], "demos")
+		self.default_file = "CustomDemo.db"
+		
+		panel = wx.Panel(self, wx.ID_ANY)
+		
+		self.name_text = wx.TextCtrl(panel, wx.ID_ANY)
+		self.name_text.SetFont(PlainFont(12))
+		self.name_text.SetValue("Custom Demo")
+		self.name_text.SetInsertionPoint(0)
+
+		self.description_text = wx.TextCtrl(panel, wx.ID_ANY, style = wx.TE_MULTILINE)
+		self.description_text.SetFont(PlainFont(12))
+		self.description_text.SetValue("Custom demo created by user.")
+
+		self.location_text = wx.TextCtrl(panel, wx.ID_ANY)
+		self.location_text.SetFont(PlainFont(12))
+		self.location_text.SetValue(os.path.join(self.default_dir, \
+		self.default_file))
+
+		browse_button = wx.Button(panel, wx.ID_ANY, "Browse...")
+		browse_button.SetFont(BoldFont())
+		wx.EVT_BUTTON(self, browse_button.GetId(), self.on_browse)
+
+		location_sizer = wx.BoxSizer(wx.HORIZONTAL)
+		location_sizer.Add(self.location_text, 1, wx.RIGHT, 5)
+		location_sizer.Add(browse_button, 0)
+
+		save_button = wx.Button(panel, wx.ID_ANY, "Save Demo")
+		save_button.SetFont(BoldFont())
+		wx.EVT_BUTTON(self, save_button.GetId(), self.on_save)
+		
+		cancel_button = wx.Button(panel, wx.ID_ANY, "Cancel")
+		cancel_button.SetFont(BoldFont())
+		wx.EVT_BUTTON(self, cancel_button.GetId(), self.on_cancel)
+		
+		button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+		button_sizer.Add(save_button, 0, wx.ALIGN_RIGHT | wx.RIGHT, 5)
+		button_sizer.Add(cancel_button, 0, wx.ALIGN_RIGHT | wx.RIGHT, 5)
+
+		# begin main layout
+		vsizer = wx.BoxSizer(wx.VERTICAL)
+		
+		vsizer.Add(LabelText(panel, "Enter Demo Name:"), 0, wx.ALIGN_LEFT)
+		vsizer.AddSpacer(2)
+
+		vsizer.Add(self.name_text, 0, wx.EXPAND)
+		vsizer.AddSpacer(10)
+		
+		vsizer.Add(LabelText(panel, "Enter Demo Description:"), 0, wx.ALIGN_LEFT)
+		vsizer.AddSpacer(2)
+		
+		vsizer.Add(self.description_text, 1, wx.EXPAND)
+		vsizer.AddSpacer(10)
+		
+		vsizer.Add(LabelText(panel, "Save Demo To:"), 0, wx.ALIGN_LEFT)
+		vsizer.AddSpacer(2)
+		
+		vsizer.Add(location_sizer, 0, wx.EXPAND)
+		vsizer.AddStretchSpacer(1)
+
+		vsizer.Add(button_sizer, 0, wx.ALIGN_RIGHT)
+		
+		panel.SetSizer(vsizer)
+		
+		# make panel stretch to entire dialog size
+		hsizer = wx.BoxSizer(wx.HORIZONTAL)
+		hsizer.Add(panel, 1, wx.EXPAND | wx.ALL, 10)
+
+		self.SetSizer(hsizer)
+	
+	def on_save(self, event):		
+		self.EndModal(wx.ID_OK)
+	
+	def on_cancel(self, event):
+		self.EndModal(wx.ID_CANCEL)
+		
+	def on_browse(self, event):
+		filter = "dypy Demo files (*.db)|*.db"
+		dialog = wx.FileDialog(self, message = "Select Save Location", \
+		wildcard = filter, style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT, \
+		defaultDir = self.default_dir, defaultFile = self.default_file)
+		
+		if dialog.ShowModal() == wx.ID_OK:
+			self.location_text.Clear()
+			self.location_text.SetValue(dialog.GetPath())
+			
+			dypy.debug("SaveDialog", "Save location set to %s." % dialog.GetPath())
+		else:
+			dypy.debug("SaveDialog", "Location selection canceled.")		
