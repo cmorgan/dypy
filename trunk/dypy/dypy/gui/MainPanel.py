@@ -177,3 +177,20 @@ class MainPanel(wx.Panel):
 		
 		self.main.system_panel.update_state()
 		self.main.system_panel.update_param()
+
+	# returns name of currently selected system
+	def get_system_name(self):
+		nlds_index = self.nlds_combo.GetSelection()
+		nlds = self.main.systems[nlds_index]
+
+		return nlds.name
+	
+	# sets the currently selected system based on name
+	def set_system_by_name(self, name):
+		for i in range(0, len(self.main.systems)):
+			nlds = self.main.systems[i]
+			
+			if nlds.name == name:
+				self.nlds_combo.SetSelection(i)
+				self.update_system()
+				return

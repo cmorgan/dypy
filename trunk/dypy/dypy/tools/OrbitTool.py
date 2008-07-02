@@ -6,6 +6,7 @@ import dypy
 class OrbitPoint():
     def __init__(self, **kwds):
         self.tool = kwds['tool']
+        
         self.state = self.get_random_state()
         self.age = self.get_random_age()
         
@@ -127,8 +128,6 @@ class OrbitTool(Tool):
                     self.points[i] = OrbitPoint(tool=self, varying_parameter=p.parameters[self.parameter_index])
             
             glEnd()
-        except AttributeError, detail:
-            pass
         except Exception, detail:
             print 'draw_points()', type(detail), detail
         finally:

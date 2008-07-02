@@ -3,7 +3,7 @@ from dypy.gui.SystemPanel import SystemPanel
 from dypy.gui.OrbitToolGUI import OrbitToolGUI
 from dypy.gui.PortraitToolGUI import PortraitToolGUI
 
-import wx, os.path
+import wx, shelve, os.path
 import dypy, dypy.systems, dypy.demos
 import dypy.gui.Widgets as Widgets
 
@@ -65,6 +65,9 @@ class MainWindow(wx.Frame):
 		self.main_panel = MainPanel(self, self.notebook)
 		self.notebook.RemovePage(0)
 		self.notebook.InsertPage(0, self.main_panel, "Main", True)
+
+		# make sure to close server when window closed
+		self.Bind(wx.EVT_CLOSE, self.on_exit_dypy)
 
 		panel.SetSizerAndFit(sizer)
 		self.Show()
@@ -137,32 +140,83 @@ class MainWindow(wx.Frame):
 
 	def on_load_demo(self, event):
 		dypy.debug("MainWindow", "Loading demo from file.")
+
+		filter = "dypy Demo files (*.db)|*.db"
+		dialog = wx.FileDialog(self, message = "Choose demo file", \
+		wildcard = filter, style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST, \
+		defaultDir = os.path.join(dypy.__path__[0], "demos"))
 		
-		import shelve
-		shelf = shelve.open('demo.py')
+		# open dialog and get file name
+		if dialog.ShowModal() == wx.ID_OK:
+			dypy.debug("MainWindow", "Loading demo from file %s." % dialog.GetPath())
+
+			shelf = shelve.open(dialog.GetPath())
+			
+			demo_system = shelf["demo system"]
+			demo_name = shelf["demo name"]
+			demo_description = shelf["demo description"]
+			
+			dypy.debug("MainWindow", "Updating system to %s." % demo_system)
+			self.main_panel.set_system_by_name(demo_system)
+			
+			dypy.debug("MainWindow", "Loading demo controls." )
+			self.load_control(shelf, 'state minimum controls', \
+			self.system_panel.state_min_controls)
+			
+			self.load_control(shelf, 'state maximum controls', \
+			self.system_panel.state_max_controls)
+			
+			self.load_control(shelf, 'parameter minimum controls', \
+			self.system_panel.param_min_controls)
+			
+			self.load_control(shelf, 'parameter maximum controls', \
+			self.system_panel.param_max_controls)
+			
+			shelf.close()
+			
+			self.system_panel.update_param()
+			self.system_panel.update_state()
+			
+		else:
+			dypy.debug("MainWindow", "Loading demo canceled by user.")
 		
-		self.load_control(shelf, 'state_min_controls', self.system_panel.state_min_controls)
-		self.load_control(shelf, 'state_max_controls', self.system_panel.state_max_controls)
-		self.load_control(shelf, 'param_min_controls', self.system_panel.param_min_controls)
-		self.load_control(shelf, 'param_max_controls', self.system_panel.param_max_controls)
-		
-		shelf.close()
-		
-		self.system_panel.update_param()
-		self.system_panel.update_state()
+		dialog.Destroy()
 
 	def on_save_demo(self, event):
 		dypy.debug("MainWindow", "Saving demo to file.")
 			
-		import shelve
-		shelf = shelve.open('demo.py')
+		dialog = Widgets.SaveDialog(self)
 		
-		self.save_control(shelf, 'state_min_controls', self.system_panel.state_min_controls)
-		self.save_control(shelf, 'state_max_controls', self.system_panel.state_max_controls)
-		self.save_control(shelf, 'param_min_controls', self.system_panel.param_min_controls)
-		self.save_control(shelf, 'param_max_controls', self.system_panel.param_max_controls)		
+		if dialog.ShowModal() == wx.ID_OK:
+			demo_name = dialog.name_text.GetValue()
+			demo_description = dialog.description_text.GetValue()
+			demo_location = dialog.location_text.GetValue()
+			
+			shelf = shelve.open(demo_location)
+			
+			shelf["demo system"] = self.main_panel.get_system_name()
+			shelf["demo name"] = demo_name
+			shelf["demo description"] = demo_description
+			
+			self.save_control(shelf, "state minimum controls", \
+			self.system_panel.state_min_controls)
+
+			self.save_control(shelf, "state maximum controls", \
+			self.system_panel.state_max_controls)
+			
+			self.save_control(shelf, "parameter minimum controls", \
+			self.system_panel.param_min_controls)
+
+			self.save_control(shelf, "parameter maximum controls", \
+			self.system_panel.param_max_controls)
+
+			shelf.close()
+
+			dypy.debug("MainWindow", "Saving demo as file %s." % demo_location)
+		else:
+			dypy.debug("MainWindow", "Saving demo canceled by user.")
 		
-		shelf.close()
+		dialog.Destroy()
 		
 	def load_control(self, shelf, key, controls):
 		values = shelf[key]
@@ -191,7 +245,7 @@ class MainWindow(wx.Frame):
 			self.server.on_close()
 		finally:
 			#close gui window
-			self.Close()
+			self.Destroy()
 
 	# updates system panel for currently selected system
 	def update_system_panel(self, system):

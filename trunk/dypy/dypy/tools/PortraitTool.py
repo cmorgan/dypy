@@ -6,10 +6,12 @@ import dypy
 class PortraitPoint():
     def __init__(self, **kwds):
         tool = kwds['tool']
+        
+        self.state = numpy.zeros(len(tool.state_ranges))
+        
+        for i in xrange(0, len(self.state)):
+            self.state[i] = random.uniform(tool.state_ranges[i][0], tool.state_ranges[i][1])
 
-        x_random = random.uniform(tool.state_ranges[tool.state_index][0], tool.state_ranges[tool.state_index][1])
-        y_random = random.uniform(tool.state_ranges[tool.state_index+1][0], tool.state_ranges[tool.state_index+1][1])
-        self.state = [x_random, y_random]
         self.age = random.uniform(0, tool.age_max)
 
 class PortraitTool(Tool):
@@ -72,14 +74,23 @@ class PortraitTool(Tool):
                 p.age += 1
                 
                 glColor4f(1, 1, 1, p.age / (self.age_max*4.0))
-                glVertex3f(p.state[self.state_index], p.state[self.state_index+1], p.age)
+                
+                x = p.state[self.state_index]
+                y = 0
+                z = 0
+                
+                if len(self.state_ranges) > 1:
+                    y = p.state[self.state_index+1]
+                
+                if len(self.state_ranges) > 2:
+                    z = p.state[self.state_index+2]
+                    
+                glVertex3f(x, y, z)
                 
                 if p.age >= self.age_max:
                     self.points[i] = PortraitPoint(tool=self)
         
             glEnd()
-        except AttributeError, detail:
-            print detail
         except Exception, detail:
             print 'draw_points()', type(detail), detail
         finally:

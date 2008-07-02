@@ -63,6 +63,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         import select
         
         self.window = pyglet.window.Window(width=self.width, height=self.height, visible=False)
+        self.window.set_location(450, 0)
         self.window.on_resize = self.on_resize
         self.window.on_close = self.on_close
         self.window.on_key_press = self.on_key_press
