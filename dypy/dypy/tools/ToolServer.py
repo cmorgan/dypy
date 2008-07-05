@@ -51,7 +51,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
     
     def run(self):
         import pyglet
-        pyglet.options['debug_gl'] = True        
+        pyglet.options['debug_gl'] = False        
         
         from dypy.tools.PortraitTool import PortraitTool
         from dypy.tools.OrbitTool import OrbitTool
