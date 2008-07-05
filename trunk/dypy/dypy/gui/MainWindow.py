@@ -161,16 +161,16 @@ class MainWindow(wx.Frame):
 			
 			dypy.debug("MainWindow", "Loading demo controls." )
 			self.load_control(shelf, 'state minimum controls', \
-			self.system_panel.state_min_controls)
+				self.system_panel.state_min_controls)
 			
 			self.load_control(shelf, 'state maximum controls', \
-			self.system_panel.state_max_controls)
+				self.system_panel.state_max_controls)
 			
 			self.load_control(shelf, 'parameter minimum controls', \
-			self.system_panel.param_min_controls)
+				self.system_panel.param_min_controls)
 			
 			self.load_control(shelf, 'parameter maximum controls', \
-			self.system_panel.param_max_controls)
+				self.system_panel.param_max_controls)
 			
 			shelf.close()
 			
@@ -199,16 +199,16 @@ class MainWindow(wx.Frame):
 			shelf["demo description"] = demo_description
 			
 			self.save_control(shelf, "state minimum controls", \
-			self.system_panel.state_min_controls)
+				self.system_panel.state_min_controls)
 
 			self.save_control(shelf, "state maximum controls", \
-			self.system_panel.state_max_controls)
+				self.system_panel.state_max_controls)
 			
 			self.save_control(shelf, "parameter minimum controls", \
-			self.system_panel.param_min_controls)
+				self.system_panel.param_min_controls)
 
 			self.save_control(shelf, "parameter maximum controls", \
-			self.system_panel.param_max_controls)
+				self.system_panel.param_max_controls)
 
 			shelf.close()
 
@@ -221,13 +221,13 @@ class MainWindow(wx.Frame):
 	def load_control(self, shelf, key, controls):
 		values = shelf[key]
 		
-		for i in range(0, len(self.system_panel.state_names)):
+		for i in xrange(0, len(controls)):
 			controls[i].SetValue(values[i])
 	
 	def save_control(self, shelf, key, controls):
 		values = []
 		
-		for i in range(0, len(self.system_panel.state_names)):
+		for i in xrange(0, len(controls)):
 			values.append(controls[i].GetValue())
 				
 		shelf[key] = values	

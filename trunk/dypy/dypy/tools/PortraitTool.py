@@ -30,16 +30,23 @@ class PortraitTool(Tool):
         Tool.set_state_ranges(self, state_ranges)
         
         sr1 = self.state_ranges[self.state_index]
-        sr2 = self.state_ranges[self.state_index+1]
+        sr2 = sr1
+        sr3 = sr1
+            
+        if len(self.state_ranges) > 1:
+            sr2 = self.state_ranges[self.state_index+1]
+        
+        if len(self.state_ranges) > 2:
+            sr3 = self.state_ranges[self.state_index+2]
 
-        self.server.set_bounds(sr1, sr2, [0, self.age_max])
-        self.server.set_axes_center(sum(sr1)/2.0, sum(sr2)/2.0, 0)
+        self.server.set_bounds(sr1, sr2, sr3)
+        self.server.set_axes_center(sum(sr1)/2.0, sum(sr2)/2.0, sum(sr3)/2.0)
 
     def init_points(self):
         self.points_lock.acquire()
         
         try:
-            # disable clearing points each frame when portrait tool is used
+            # disable clearing points each frame when portrait tool is used,
             # set here since it's not toggleable via the gui
             self.server.clear_each_frame = False
             self.server.iteration = 0
@@ -70,10 +77,6 @@ class PortraitTool(Tool):
             
             for i in xrange(0, self.density):
                 p = self.points[i]
-                p.state = self.system.iterate(p.state, parameters)
-                p.age += 1
-                
-                glColor4f(1, 1, 1, p.age / (self.age_max*4.0))
                 
                 x = p.state[self.state_index]
                 y = 0
@@ -84,8 +87,12 @@ class PortraitTool(Tool):
                 
                 if len(self.state_ranges) > 2:
                     z = p.state[self.state_index+2]
-                    
+                
+                glColor4f(1, 1, 1, p.age / (self.age_max*4.0))
                 glVertex3f(x, y, z)
+                
+                p.state = self.system.iterate(p.state, parameters)
+                p.age += 1
                 
                 if p.age >= self.age_max:
                     self.points[i] = PortraitPoint(tool=self)

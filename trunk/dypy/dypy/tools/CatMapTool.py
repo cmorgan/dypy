@@ -1,3 +1,5 @@
+# this is an old tool that needs to be rewritten with the new framework
+
 from copy import copy
 from pyglet import image
 from pyglet.gl import *
