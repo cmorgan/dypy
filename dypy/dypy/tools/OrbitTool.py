@@ -36,7 +36,7 @@ class OrbitPoint():
 class OrbitTool(Tool):
     def __init__(self, **kwds):
         Tool.__init__(self, name='Orbit Visualization', description='An animated orbit diagram.', server=kwds['server'])
-        dypy.debug("OrbitTool", "Initialized.")
+        dypy.debug('OrbitTool', 'Initialized.')
         
         self.age_max = 1000  
         self.density = 3

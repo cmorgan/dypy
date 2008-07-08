@@ -2,6 +2,7 @@ from dypy.gui.MainPanel import MainPanel
 from dypy.gui.SystemPanel import SystemPanel
 from dypy.gui.OrbitToolGUI import OrbitToolGUI
 from dypy.gui.PortraitToolGUI import PortraitToolGUI
+from dypy.gui.CobwebToolGUI import CobwebToolGUI
 
 import wx, shelve, os.path
 import dypy, dypy.systems, dypy.demos
@@ -57,7 +58,9 @@ class MainWindow(wx.Frame):
 		self.demos = get_demos()
 		dypy.debug("MainWindow", "Loaded %d demos." % len(self.demos))
 		
-		self.tools = [OrbitToolGUI(self.notebook), PortraitToolGUI(self.notebook)]
+		# define tools
+		self.tools = [OrbitToolGUI(self.notebook), PortraitToolGUI(self.notebook), \
+					  CobwebToolGUI(self.notebook)]
 		self.active_tool = self.tools[0]
 		dypy.debug("MainWindow", "Loaded %d tools." % len(self.tools))
 	
