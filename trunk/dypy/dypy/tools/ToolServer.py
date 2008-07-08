@@ -55,6 +55,8 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         
         from dypy.tools.PortraitTool import PortraitTool
         from dypy.tools.OrbitTool import OrbitTool
+        from dypy.tools.CobwebTool import CobwebTool
+        # unfortunately, pyglet imports must occur in the same scope as the pyglet window
         from pyglet.gl import glBlendFunc, glEnable, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, \
             GL_BLEND, glClear, GL_COLOR_BUFFER_BIT, glMatrixMode, GL_PROJECTION, GL_MODELVIEW, \
             glLoadIdentity, glTranslatef, glRotatef, gl_info, glViewport, glOrtho
@@ -96,6 +98,9 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         
         t = PortraitTool(server=self)
         self.server.daemon.connect(t, 'PortraitTool')
+        
+        t = CobwebTool(server=self)
+        self.server.daemon.connect(t, 'CobwebTool')
         
         t = OrbitTool(server=self)
         self.server.daemon.connect(t, 'OrbitTool')
