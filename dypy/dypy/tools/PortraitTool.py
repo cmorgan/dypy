@@ -22,10 +22,7 @@ class PortraitTool(Tool):
         self.density = 100
         self.age_max = 1000
         self.server.hide_axes = False
-    
-    def set_parameter_ranges(self, parameter_ranges):
-        Tool.set_parameter_ranges(self, parameter_ranges)
-    
+ 
     def set_state_ranges(self, state_ranges):
         Tool.set_state_ranges(self, state_ranges)
         
