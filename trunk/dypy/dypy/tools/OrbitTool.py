@@ -66,21 +66,29 @@ class OrbitTool(Tool):
     
     def set_state_ranges(self, state_ranges):
         Tool.set_state_ranges(self, state_ranges)
+        self.points_lock.acquire()
         
-        pr = self.parameter_ranges[self.parameter_index]
-        sr = self.state_ranges[self.state_index]        
-    
-        self.server.set_bounds(pr, sr, [0, 0])
-        self.server.set_axes_center(sum(pr)/2.0, sum(sr)/2.0, 0)
+        try:
+            pr = self.parameter_ranges[self.parameter_index]
+            sr = self.state_ranges[self.state_index]        
+        
+            self.server.set_bounds(pr, sr, [0, 0])
+            self.server.set_axes_center(sum(pr)/2.0, sum(sr)/2.0, 0)
+        finally:
+            self.points_lock.release()
 
     def set_parameter_ranges(self, parameter_ranges):
         Tool.set_parameter_ranges(self, parameter_ranges)
+        self.points_lock.acquire()
         
-        pr = self.parameter_ranges[self.parameter_index]
-        sr = self.state_ranges[self.state_index]        
-    
-        self.server.set_bounds(pr, sr, [0, 0])
-        self.server.set_axes_center(sum(pr)/2.0, sum(sr)/2.0, 0)
+        try:
+            pr = self.parameter_ranges[self.parameter_index]
+            sr = self.state_ranges[self.state_index]        
+        
+            self.server.set_bounds(pr, sr, [0, 0])
+            self.server.set_axes_center(sum(pr)/2.0, sum(sr)/2.0, 0)
+        finally:
+            self.points_lock.release()
 
     def init_points(self):
         self.points_lock.acquire()

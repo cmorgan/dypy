@@ -3,6 +3,29 @@ import numpy
 import random
 import dypy
 
+class CobwebPoint():
+    def __init__(self, **kwds):
+        self.tool = kwds['tool']
+        
+        self.state = self.get_random_state()
+        self.parameters = self.pack_parameters()
+
+    def get_random_state(self):
+        state = numpy.zeros(len(self.tool.state_ranges))
+        
+        for i in xrange(0, len(state)):
+            state[i] = random.uniform(self.tool.state_ranges[i][0], self.tool.state_ranges[i][1])
+        
+        return state
+      
+    def pack_parameters(self):
+        parameters = numpy.zeros(len(self.tool.parameter_ranges))
+            
+        for i in xrange(0, len(parameters)):
+            parameters[i] = self.tool.parameter_ranges[i][0]
+        
+        return parameters       
+
 class CobwebTool(Tool):
     def __init__(self, **kwds):
         Tool.__init__(self, name='Cobweb Visualization', description='', server=kwds['server'])
@@ -10,10 +33,15 @@ class CobwebTool(Tool):
     
     def set_state_ranges(self, state_ranges):
         Tool.set_state_ranges(self, state_ranges)
+        self.points_lock.acquire()
         
-        sr = self.state_ranges[self.state_index]
+        try:
+            sr = self.state_ranges[self.state_index]
 
-        self.server.set_bounds(sr, sr, sr)
+            self.server.set_bounds(sr, sr, sr)
+            self.server.set_axes_center(sum(sr)/2.0, sum(sr)/2.0, 0)
+        finally:
+            self.points_lock.release()
     
     def init_points(self):
         self.points_lock.acquire()
@@ -22,38 +50,30 @@ class CobwebTool(Tool):
             from pyglet.gl import glGenLists, glNewList, GL_COMPILE, glBegin, GL_LINE_STRIP, GL_LINES, \
                 glColor4f, glVertex2f, glEnd, glEndList, \
                 glEnable, GL_LINE_SMOOTH, glHint, GL_LINE_SMOOTH_HINT, GL_NICEST
-            import copy
                         
             self.server.clear_each_frame = False
             self.server.iteration = 0            
-            
-            # create random initial state
-            self.state = numpy.zeros(len(self.state_ranges))
-        
-            for i in xrange(0, len(self.state)):
-                self.state[i] = random.uniform(self.state_ranges[i][0], self.state_ranges[i][1])
 
-            # pack parameters into array
-            parameters = numpy.zeros(len(self.system.get_parameter_names()))
-            
-            for i in xrange(0, len(parameters)):
-                parameters[i] = self.parameter_ranges[i][0]
-     
+            # initial state/parameters
+            self.point = CobwebPoint(tool=self)
+
             # enable line anti-aliasing
-            #glEnable(GL_LINE_SMOOTH)
-            #glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+            glEnable(GL_LINE_SMOOTH)
+            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  
      
             # create display list for first iterate of function
             self.iterate_list = glGenLists(1)
             
             glNewList(self.iterate_list, GL_COMPILE)
             glBegin(GL_LINE_STRIP)
-            glColor4f(0, 0.8, 0, 0.5)
+            glColor4f(217/255.0, 115/255.0, 56/255.0, 0.9)
             
-            for i in numpy.arange(self.state_ranges[self.state_index][0], self.state_ranges[self.state_index][1], 0.01):
-                s = copy.copy(self.state)
-                s[self.state_index] = i
-                glVertex2f(i, self.system.iterate(s, parameters))
+            p = CobwebPoint(tool=self)
+            
+            for i in numpy.arange(self.state_ranges[self.state_index][0], self.state_ranges[self.state_index][1], 0.001):
+                p.state[self.state_index] = i
+                state_new = self.system.iterate(p.state, p.parameters)
+                glVertex2f(i, state_new[self.state_index])
             
             glEnd()
             glEndList()    
@@ -63,7 +83,7 @@ class CobwebTool(Tool):
             
             glNewList(self.reflection_list, GL_COMPILE)
             glBegin(GL_LINES)
-            glColor4f(0, 0, 1, 0.5)
+            glColor4f(217/255.0, 88/255.0, 41/255.0, 0.9)
             
             glVertex2f(self.state_ranges[self.state_index][0], self.state_ranges[self.state_index][0])
             glVertex2f(self.state_ranges[self.state_index][1], self.state_ranges[self.state_index][1])
@@ -79,30 +99,25 @@ class CobwebTool(Tool):
         self.points_lock.acquire()
         
         try:
-            from pyglet.gl import glCallList, glBegin, GL_LINE_STRIP, glColor4f, glVertex2f, glEnd
-            
-            # pack parameters into array
-            parameters = numpy.zeros(len(self.system.get_parameter_names()))
-            
-            for i in xrange(0, len(parameters)):
-                parameters[i] = self.parameter_ranges[i][0]            
+            from pyglet.gl import glCallList, glBegin, GL_LINE_STRIP, glColor4f, glVertex2f, glEnd                   
             
             # line from previous iterate to next iterate of function
             glBegin(GL_LINE_STRIP)            
-            glColor4f(1, 1, 1, 0.1)
+            glColor4f(1, 1, 1, 0.3)
             
             for i in [1, 2]:
-                state_previous = self.state[self.state_index]
-                self.state = self.system.iterate(self.state, parameters)
+                state_previous = self.point.state[self.state_index]
+                self.point.state = self.system.iterate(self.point.state, self.point.parameters)
             
                 glVertex2f(state_previous, state_previous)
-                glVertex2f(state_previous, self.state[self.state_index])
+                glVertex2f(state_previous, self.point.state[self.state_index])
             
             glEnd()
             
-            # call display lists
-            glCallList(self.iterate_list)            
-            glCallList(self.reflection_list)            
+            # call display lists, doesn't work in init_points()
+            if self.server.iteration == 0:
+                glCallList(self.iterate_list)            
+                glCallList(self.reflection_list)
         except Exception, detail:
             print 'draw_points()', type(detail), detail
         finally:
