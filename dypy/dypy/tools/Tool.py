@@ -11,6 +11,7 @@ class Tool(Pyro.core.ObjBase):
  
         self.parameter_index = 0
         self.state_index = 0
+        self.parameters = []
         self.parameter_ranges = [(0, 0)]
         self.state_ranges = [(0, 0)]
         
@@ -51,7 +52,7 @@ class Tool(Pyro.core.ObjBase):
     def set_parameter_ranges(self, parameter_ranges):
         self.points_lock.acquire()
         
-        try:
+        try:                
             self.parameter_ranges = parameter_ranges
             self.server.update_tool(self)
             dypy.debug("DynamicsTool", "Parameter ranges updated.")

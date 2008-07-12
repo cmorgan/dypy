@@ -25,19 +25,23 @@ class PortraitTool(Tool):
  
     def set_state_ranges(self, state_ranges):
         Tool.set_state_ranges(self, state_ranges)
+        self.points_lock.acquire()
         
-        sr1 = self.state_ranges[self.state_index]
-        sr2 = sr1
-        sr3 = sr1
+        try:
+            sr1 = self.state_ranges[self.state_index]
+            sr2 = sr1
+            sr3 = sr1
+                
+            if len(self.state_ranges) > 1:
+                sr2 = self.state_ranges[self.state_index+1]
             
-        if len(self.state_ranges) > 1:
-            sr2 = self.state_ranges[self.state_index+1]
-        
-        if len(self.state_ranges) > 2:
-            sr3 = self.state_ranges[self.state_index+2]
-
-        self.server.set_bounds(sr1, sr2, sr3)
-        self.server.set_axes_center(sum(sr1)/2.0, sum(sr2)/2.0, sum(sr3)/2.0)
+            if len(self.state_ranges) > 2:
+                sr3 = self.state_ranges[self.state_index+2]
+    
+            self.server.set_bounds(sr1, sr2, sr3)
+            self.server.set_axes_center(sum(sr1)/2.0, sum(sr2)/2.0, sum(sr3)/2.0)
+        finally:
+            self.points_lock.release()
 
     def init_points(self):
         self.points_lock.acquire()
