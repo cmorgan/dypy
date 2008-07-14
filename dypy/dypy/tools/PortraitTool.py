@@ -24,24 +24,15 @@ class PortraitTool(Tool):
         self.server.hide_axes = False
  
     def set_state_ranges(self, state_ranges):
-        Tool.set_state_ranges(self, state_ranges)
-        self.points_lock.acquire()
-        
-        try:
-            sr1 = self.state_ranges[self.state_index]
-            sr2 = sr1
-            sr3 = sr1
-                
-            if len(self.state_ranges) > 1:
-                sr2 = self.state_ranges[self.state_index+1]
+        x_bounds = y_bounds = z_bounds = self.state_ranges[self.state_index]
             
-            if len(self.state_ranges) > 2:
-                sr3 = self.state_ranges[self.state_index+2]
-    
-            self.server.set_bounds(sr1, sr2, sr3)
-            self.server.set_axes_center(sum(sr1)/2.0, sum(sr2)/2.0, sum(sr3)/2.0)
-        finally:
-            self.points_lock.release()
+        if len(self.state_ranges) > 1:
+            y_bounds = self.state_ranges[self.state_index+1]
+        
+        if len(self.state_ranges) > 2:
+            z_bounds = self.state_ranges[self.state_index+2]
+                
+        Tool.set_state_ranges(self, state_ranges, x_bounds, y_bounds, z_bounds)
 
     def init_points(self):
         self.points_lock.acquire()

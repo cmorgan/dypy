@@ -31,17 +31,13 @@ class CobwebTool(Tool):
         Tool.__init__(self, name='Cobweb Visualization', description='', server=kwds['server'])
         dypy.debug('CobwebTool', 'initialized')
     
+    def set_parameter_ranges(self, parameter_ranges):
+        x_bounds = y_bounds = self.state_ranges[self.state_index]
+        Tool.set_parameter_ranges(self, parameter_ranges, x_bounds, y_bounds)
+    
     def set_state_ranges(self, state_ranges):
-        Tool.set_state_ranges(self, state_ranges)
-        self.points_lock.acquire()
-        
-        try:
-            sr = self.state_ranges[self.state_index]
-
-            self.server.set_bounds(sr, sr, sr)
-            self.server.set_axes_center(sum(sr)/2.0, sum(sr)/2.0, 0)
-        finally:
-            self.points_lock.release()
+        x_bounds = y_bounds = self.state_ranges[self.state_index]
+        Tool.set_state_ranges(self, state_ranges, x_bounds, y_bounds)
     
     def init_points(self):
         self.points_lock.acquire()
