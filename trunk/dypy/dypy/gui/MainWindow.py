@@ -158,6 +158,7 @@ class MainWindow(wx.Frame):
 			demo_system = shelf["demo system"]
 			demo_name = shelf["demo name"]
 			demo_description = shelf["demo description"]
+			demo_tool = shelf["demo tool"]
 			
 			dypy.debug("MainWindow", "Updating system to %s." % demo_system)
 			self.main_panel.set_system_by_name(demo_system)
@@ -175,11 +176,13 @@ class MainWindow(wx.Frame):
 			self.load_control(shelf, 'parameter maximum controls', \
 				self.system_panel.param_max_controls)
 			
-			shelf.close()
+			shelf.close()			
 			
 			self.system_panel.update_param()
 			self.system_panel.update_state()
 			
+			dypy.debug("MainWindow", "Updating tool to %s." % demo_tool)
+			self.main_panel.set_tool_by_name(demo_tool)
 		else:
 			dypy.debug("MainWindow", "Loading demo canceled by user.")
 		
@@ -200,6 +203,7 @@ class MainWindow(wx.Frame):
 			shelf["demo system"] = self.main_panel.get_system_name()
 			shelf["demo name"] = demo_name
 			shelf["demo description"] = demo_description
+			shelf["demo tool"] = self.main_panel.get_tool_name()
 			
 			self.save_control(shelf, "state minimum controls", \
 				self.system_panel.state_min_controls)

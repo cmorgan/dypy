@@ -194,3 +194,20 @@ class MainPanel(wx.Panel):
 				self.nlds_combo.SetSelection(i)
 				self.update_system()
 				return
+
+	# returns name of currently selected tool
+	def get_tool_name(self):
+		tool_index = self.tool_combo.GetSelection()
+		tool = self.main.tools[tool_index]
+		
+		return tool.name
+
+	# sets the currently selected tool based on name
+	def set_tool_by_name(self, name):
+		for i in range(0, len(self.main.tools)):
+			tool = self.main.tools[i]
+			
+			if tool.name == name:
+				self.tool_combo.SetSelection(i)
+				self.update_tool()
+				return

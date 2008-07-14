@@ -64,15 +64,11 @@ class OrbitTool(Tool):
     def set_show_history(self, show_history):
         self.server.clear_each_frame = not(show_history)
     
-    def set_state_ranges(self, state_ranges):
+    def get_bounds(self):
         x_bounds = self.parameter_ranges[self.parameter_index]
-        y_bounds = self.state_ranges[self.state_index]    
-        Tool.set_state_ranges(self, state_ranges, x_bounds, y_bounds)
-
-    def set_parameter_ranges(self, parameter_ranges):
-        x_bounds = self.parameter_ranges[self.parameter_index]
-        y_bounds = self.state_ranges[self.state_index] 
-        Tool.set_parameter_ranges(self, parameter_ranges, x_bounds, y_bounds)
+        y_bounds = self.state_ranges[self.state_index]
+        z_bounds = [-1, 1]
+        return x_bounds, y_bounds, z_bounds 
 
     def init_points(self):
         self.points_lock.acquire()

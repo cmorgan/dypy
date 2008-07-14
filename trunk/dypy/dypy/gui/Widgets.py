@@ -135,7 +135,7 @@ class SaveDialog(wx.Dialog):
 		self.SetSize((400, 300))
 		
 		self.default_dir  = os.path.join(dypy.__path__[0], "demos")
-		self.default_file = "CustomDemo.db"
+		self.default_file = "CustomDemo"
 		
 		panel = wx.Panel(self, wx.ID_ANY)
 		
