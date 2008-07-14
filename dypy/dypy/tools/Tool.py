@@ -49,13 +49,17 @@ class Tool(Pyro.core.ObjBase):
         finally:
             self.points_lock.release()
     
-    def set_parameter_ranges(self, parameter_ranges, x_bounds, y_bounds, z_bounds=[-1, 1]):
+    def get_bounds(self):
+        assert 0, 'must be defined'
+    
+    def set_parameter_ranges(self, parameter_ranges):
         self.points_lock.acquire()
         
         try:                
             self.parameter_ranges = parameter_ranges
             self.server.update_tool(self)
             
+            x_bounds, y_bounds, z_bounds = self.get_bounds()
             self.server.set_bounds(x_bounds, y_bounds, z_bounds)
             self.server.set_axes_center(sum(x_bounds)/2.0, sum(y_bounds)/2.0, sum(z_bounds)/2.0)
             
@@ -63,13 +67,14 @@ class Tool(Pyro.core.ObjBase):
         finally:
             self.points_lock.release()        
     
-    def set_state_ranges(self, state_ranges, x_bounds, y_bounds, z_bounds=[-1, 1]):
+    def set_state_ranges(self, state_ranges):
         self.points_lock.acquire()
         
         try:
             self.state_ranges = state_ranges
             self.server.update_tool(self)
             
+            x_bounds, y_bounds, z_bounds = self.get_bounds()
             self.server.set_bounds(x_bounds, y_bounds, z_bounds)
             self.server.set_axes_center(sum(x_bounds)/2.0, sum(y_bounds)/2.0, sum(z_bounds)/2.0)            
             
