@@ -109,7 +109,7 @@ class MainWindow(wx.Frame):
 	# called when start visualization clicked
 	def on_start(self, event):
 		# disable changing system and tool
-		self.main_panel.lockdown()
+		self.main_panel.lock()
 		
 		# change start button text and event handling
 		self.start_button.SetLabel("Stop Visualization")
@@ -164,21 +164,14 @@ class MainWindow(wx.Frame):
 			self.main_panel.set_system_by_name(demo_system)
 			
 			dypy.debug("MainWindow", "Loading demo controls." )
-			self.load_control(shelf, 'state minimum controls', \
-				self.system_panel.state_min_controls)
-			
-			self.load_control(shelf, 'state maximum controls', \
-				self.system_panel.state_max_controls)
-			
-			self.load_control(shelf, 'parameter minimum controls', \
-				self.system_panel.param_min_controls)
-			
-			self.load_control(shelf, 'parameter maximum controls', \
-				self.system_panel.param_max_controls)
+			self.load_control(shelf, 'state minimum controls', self.system_panel.state_min_controls)
+			self.load_control(shelf, 'state maximum controls', self.system_panel.state_max_controls)
+			self.load_control(shelf, 'parameter minimum controls', self.system_panel.param_min_controls)
+			self.load_control(shelf, 'parameter maximum controls', self.system_panel.param_max_controls)
 			
 			shelf.close()			
 			
-			self.system_panel.update_param()
+			self.system_panel.update_parameters()
 			self.system_panel.update_state()
 			
 			dypy.debug("MainWindow", "Updating tool to %s." % demo_tool)
@@ -205,17 +198,10 @@ class MainWindow(wx.Frame):
 			shelf["demo description"] = demo_description
 			shelf["demo tool"] = self.main_panel.get_tool_name()
 			
-			self.save_control(shelf, "state minimum controls", \
-				self.system_panel.state_min_controls)
-
-			self.save_control(shelf, "state maximum controls", \
-				self.system_panel.state_max_controls)
-			
-			self.save_control(shelf, "parameter minimum controls", \
-				self.system_panel.param_min_controls)
-
-			self.save_control(shelf, "parameter maximum controls", \
-				self.system_panel.param_max_controls)
+			self.save_control(shelf, "state minimum controls", self.system_panel.state_min_controls)
+			self.save_control(shelf, "state maximum controls", self.system_panel.state_max_controls)
+			self.save_control(shelf, "parameter minimum controls", self.system_panel.param_min_controls)
+			self.save_control(shelf, "parameter maximum controls", self.system_panel.param_max_controls)
 
 			shelf.close()
 
