@@ -3,16 +3,16 @@ import dypy.gui.Widgets as Widgets
 
 # main panel for selecting system, demo, and tool
 class MainPanel(wx.Panel):
-	def __init__(self, main, parent):
+	def __init__(self, main_window, parent):
 		wx.Panel.__init__(self, parent, wx.ID_ANY)
-		self.main = main
+		self.main_window = main_window
 		
 		# gui components
 		# combo components contain loaded module/class names
 		# about components contain description of current selection
-		self.nlds_label = Widgets.LabelText(self, "Select a dynamical system:")
-		self.nlds_combo = Widgets.ChoiceList(self)
-		self.nlds_about = Widgets.AboutText(self)
+		self.system_label = Widgets.LabelText(self, "Select a dynamical system:")
+		self.system_combo = Widgets.ChoiceList(self)
+		self.system_about = Widgets.AboutText(self)
 
 		self.demo_label = Widgets.LabelText(self, "Select a demo:")
 		self.demo_combo = Widgets.ChoiceList(self)
@@ -26,11 +26,11 @@ class MainPanel(wx.Panel):
 		sizer = wx.BoxSizer(wx.VERTICAL)
 
 		# add system components (nlds: nonlinear dynamical system)
-		sizer.Add(self.nlds_label, 0, wx.ALIGN_LEFT | wx.TOP | wx.LEFT, 4)
+		sizer.Add(self.system_label, 0, wx.ALIGN_LEFT | wx.TOP | wx.LEFT, 4)
 		sizer.AddSpacer(2)
-		sizer.Add(self.nlds_combo, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
+		sizer.Add(self.system_combo, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
 		sizer.AddSpacer(2)
-		sizer.Add(self.nlds_about, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
+		sizer.Add(self.system_about, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
 		sizer.AddSpacer(10)
 		
 		# add demo components
@@ -52,7 +52,7 @@ class MainPanel(wx.Panel):
 		self.SetSizer(sizer)
 
 		# set event handlers for choices
-		wx.EVT_CHOICE(self, self.nlds_combo.GetId(), self.update_system)
+		wx.EVT_CHOICE(self, self.system_combo.GetId(), self.update_system)
 		wx.EVT_CHOICE(self, self.demo_combo.GetId(), self.update_demo)
 		wx.EVT_CHOICE(self, self.tool_combo.GetId(), self.update_tool)
 
@@ -65,17 +65,17 @@ class MainPanel(wx.Panel):
 
 	# disables system, demo, and tool selection
 	# called to prevent selection while a tool is running
-	def lockdown(self):
-		self.nlds_combo.Disable()
+	def lock(self):
+		self.system_combo.Disable()
 		self.demo_combo.Disable()
 		self.tool_combo.Disable()
 		
 		dypy.debug("MainPanel", "Selection disabled.")
 
-	# renables selection
+	# re-enables selection
 	# called after tool is stopped
 	def unlock(self):
-		self.nlds_combo.Enable()
+		self.system_combo.Enable()
 		self.demo_combo.Enable()
 		self.tool_combo.Enable()
 		
@@ -83,18 +83,18 @@ class MainPanel(wx.Panel):
 
 	# populate system choices from main window
 	def init_systems(self):
-		names = [ system.name for system in self.main.systems ]
-		self.nlds_combo.SetItems(names)
-		self.nlds_combo.SetSelection(0)
+		names = [ system.name for system in self.main_window.systems ]
+		self.system_combo.SetItems(names)
+		self.system_combo.SetSelection(0)
 		
 		dypy.debug("MainPanel", "System selection initialized.")
 		self.update_system()
 
 	# updates system description and valid demos
 	def update_system(self, event = wx.CommandEvent()):
-		nlds_index = self.nlds_combo.GetSelection()
-		nlds = self.main.systems[nlds_index]
-		self.nlds_about.SetValue(nlds.description)
+		nlds_index = self.system_combo.GetSelection()
+		nlds = self.main_window.systems[nlds_index]
+		self.system_about.SetValue(nlds.description)
 
 		dypy.debug("MainPanel", "System is now %s." % nlds.name)
 		
@@ -102,12 +102,12 @@ class MainPanel(wx.Panel):
 		self.init_demos()
 		
 		# let main window update the system panel
-		self.main.update_system_panel(nlds)
+		self.main_window.update_system_panel(nlds)
 
 	# populate demo choices from main window
 	def init_demos(self):
-		nlds_index = self.nlds_combo.GetSelection()
-		nlds = self.main.systems[nlds_index]
+		nlds_index = self.system_combo.GetSelection()
+		nlds = self.main_window.systems[nlds_index]
 
 		# get system prefix from demo name
 		# should be SystemName_DemoName.py
@@ -115,7 +115,7 @@ class MainPanel(wx.Panel):
 		names = []
 
 		# checks each loaded demo for name match
-		for demo in self.main.demos:
+		for demo in self.main_window.demos:
 			demo_module = demo.__module__.split('.')[-1]
 			demo_prefix = demo_module.split('_')[0]
 			
@@ -140,20 +140,19 @@ class MainPanel(wx.Panel):
 
 		# set custom parameter settings about message
 		if demo_name == "Custom Parameter Settings":
-			self.demo_about.SetValue("Manually enter custom parameter " + \
-			"settings on the %s tab." % self.nlds_combo.GetStringSelection())
+			self.demo_about.SetValue("Manually enter custom parameter settings on the %s tab." % self.system_combo.GetStringSelection())
 			return
 		
 		# find demo class reference by name
-		for demo in self.main.demos:
+		for demo in self.main_window.demos:
 			if demo.name == demo_name:
 				self.demo_about.SetValue(demo.description)
-				self.main.update_parameters(demo)
+				self.main_window.update_parameters(demo)
 				return
 
 	# populate tool choice from main window
 	def init_tools(self):
-		names = [ tool.name for tool in self.main.tools ]
+		names = [ tool.name for tool in self.main_window.tools ]
 		self.tool_combo.SetItems(names)
 		self.tool_combo.SetSelection(0)
 		
@@ -163,49 +162,49 @@ class MainPanel(wx.Panel):
 	# update tool description and tool panel
 	def update_tool(self, event = wx.CommandEvent()):
 		tool_index = self.tool_combo.GetSelection()
-		tool = self.main.tools[tool_index]
+		tool = self.main_window.tools[tool_index]
 		
-		nlds_index = self.nlds_combo.GetSelection()
-		nlds = self.main.systems[nlds_index]
+		system_index = self.system_combo.GetSelection()
+		system = self.main_window.systems[system_index]
 		
 		self.tool_about.SetValue(tool.description)
 		
 		dypy.debug("MainPanel", "Tool is now %s" % tool.name)
 		
 		# let main window update the tool panel
-		self.main.update_tool_panel(nlds, tool)
+		self.main_window.update_tool_panel(system, tool)
 		
-		self.main.system_panel.update_state()
-		self.main.system_panel.update_param()
+		self.main_window.system_panel.update_state()
+		self.main_window.system_panel.update_parameters()
 
 	# returns name of currently selected system
 	def get_system_name(self):
-		nlds_index = self.nlds_combo.GetSelection()
-		nlds = self.main.systems[nlds_index]
+		nlds_index = self.system_combo.GetSelection()
+		nlds = self.main_window.systems[nlds_index]
 
 		return nlds.name
 	
 	# sets the currently selected system based on name
 	def set_system_by_name(self, name):
-		for i in range(0, len(self.main.systems)):
-			nlds = self.main.systems[i]
+		for i in range(0, len(self.main_window.systems)):
+			nlds = self.main_window.systems[i]
 			
 			if nlds.name == name:
-				self.nlds_combo.SetSelection(i)
+				self.system_combo.SetSelection(i)
 				self.update_system()
 				return
 
 	# returns name of currently selected tool
 	def get_tool_name(self):
 		tool_index = self.tool_combo.GetSelection()
-		tool = self.main.tools[tool_index]
+		tool = self.main_window.tools[tool_index]
 		
 		return tool.name
 
 	# sets the currently selected tool based on name
 	def set_tool_by_name(self, name):
-		for i in range(0, len(self.main.tools)):
-			tool = self.main.tools[i]
+		for i in range(0, len(self.main_window.tools)):
+			tool = self.main_window.tools[i]
 			
 			if tool.name == name:
 				self.tool_combo.SetSelection(i)

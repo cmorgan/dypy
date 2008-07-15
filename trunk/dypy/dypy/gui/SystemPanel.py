@@ -7,7 +7,7 @@ class SystemPanel(wx.Panel):
 		wx.Panel.__init__(self, parent, wx.ID_ANY)
 
 		self.system = system
-		self.main = main
+		self.main_window = main
 
 		self.state_names = self.system.get_state_names()
 		self.param_names = self.system.get_parameter_names()
@@ -83,8 +83,8 @@ class SystemPanel(wx.Panel):
 			self.param_max_controls.append(max_control)
 			
 			# bind controls
-			min_control.Bind(wx.EVT_KILL_FOCUS, self.update_param)
-			max_control.Bind(wx.EVT_KILL_FOCUS, self.update_param)
+			min_control.Bind(wx.EVT_KILL_FOCUS, self.update_parameters)
+			max_control.Bind(wx.EVT_KILL_FOCUS, self.update_parameters)
 
 			# add controls to sizer
 			sizer.Add(Widgets.FloatLabel(self, self.param_names[i] + ":"), \
@@ -102,7 +102,7 @@ class SystemPanel(wx.Panel):
 			row = row + 1
 
 		self.update_state()
-		self.update_param()
+		self.update_parameters()
 		
 		self.SetSizer(sizer)
 		dypy.debug("SystemPanel", "Initialized for %s." % system.name)
@@ -121,10 +121,10 @@ class SystemPanel(wx.Panel):
 		dypy.debug("SystemPanel", "State ranges updated.")
 
 		# update ranges for the active tool
-		self.main.active_tool.set_state_ranges(ranges)
+		self.main_window.active_tool.set_state_ranges(ranges)
 
 	# update param ranges whenever lose focus
-	def update_param(self, event = wx.CommandEvent()):
+	def update_parameters(self, event = wx.CommandEvent()):
 		ranges = []
 
 		# get range strings and convert to floating point numbers
@@ -137,4 +137,4 @@ class SystemPanel(wx.Panel):
 		dypy.debug("SystemPanel", "Parameter ranges updated.")
 		
 		# update ranges for the active tool
-		self.main.active_tool.set_parameter_ranges(ranges)
+		self.main_window.active_tool.set_parameter_ranges(ranges)

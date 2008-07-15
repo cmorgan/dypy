@@ -41,18 +41,13 @@ class CobwebTool(Tool):
         
         try:
             from pyglet.gl import glGenLists, glNewList, GL_COMPILE, glBegin, GL_LINE_STRIP, GL_LINES, \
-                glColor4f, glVertex2f, glEnd, glEndList, \
-                glEnable, GL_LINE_SMOOTH, glHint, GL_LINE_SMOOTH_HINT, GL_NICEST
+                glColor4f, glVertex2f, glEnd, glEndList, glEnable
                         
             self.server.clear_each_frame = False
             self.server.iteration = 0            
 
             # initial state/parameters
             self.point = CobwebPoint(tool=self)
-
-            # enable line anti-aliasing
-            glEnable(GL_LINE_SMOOTH)
-            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  
      
             # create display list for first iterate of function
             self.iterate_list = glGenLists(1)

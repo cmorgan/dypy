@@ -59,7 +59,8 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         # unfortunately, pyglet imports must occur in the same scope as the pyglet window
         from pyglet.gl import glBlendFunc, glEnable, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, \
             GL_BLEND, glClear, GL_COLOR_BUFFER_BIT, glMatrixMode, GL_PROJECTION, GL_MODELVIEW, \
-            glLoadIdentity, glTranslatef, glRotatef, gl_info, glViewport, glOrtho
+            glLoadIdentity, glTranslatef, glRotatef, gl_info, glViewport, glOrtho, \
+            glHint, GL_POINT_SMOOTH, GL_LINE_SMOOTH, GL_POINT_SMOOTH_HINT, GL_LINE_SMOOTH_HINT, GL_NICEST
         import pyglet.clock
         import pyglet.window
         import select
@@ -107,9 +108,17 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         
         self.update_tool(t)
         
-        # setup alpha blending
+        # enable alpha blending
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glEnable(GL_BLEND)
+        
+        # enable line anti-aliasing
+        glEnable(GL_LINE_SMOOTH)
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+        
+        # enable point anti-aliasing
+        glEnable(GL_POINT_SMOOTH)
+        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)    
         
         # gl diagnostics
         dypy.debug("ToolServer", "GL version is %s." % gl_info.get_version())
