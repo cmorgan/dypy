@@ -9,9 +9,8 @@ class Tool(Pyro.core.ObjBase):
         self.description = kwds['description']
         self.server = kwds['server']
  
-        self.parameter_index = 0
-        self.state_index = 0
-        self.parameters = []
+        self.parameter_indices = [0, 1, 2]
+        self.state_indices = [0, 1, 2]
         self.parameter_ranges = [(-1, 1)]
         self.state_ranges = [(-1, 1)]
         
@@ -24,6 +23,8 @@ class Tool(Pyro.core.ObjBase):
         try:
             self.server.window.set_caption(system.name)
             self.system = system
+            self.parameter_indices = [0, 1, 2]
+            self.state_indices = [0, 1, 2]
             self.server.update_tool(self)
             dypy.debug("DynamicsTool", "System set to %s." % system.name)
         finally:
@@ -33,7 +34,7 @@ class Tool(Pyro.core.ObjBase):
         self.points_lock.acquire()
         
         try:
-            self.parameter_index = parameter_index
+            self.parameter_indices[0] = parameter_index
             self.server.update_tool(self)
             dypy.debug("DynamicsTool", "Parameter index updated.")
         finally:
@@ -43,7 +44,7 @@ class Tool(Pyro.core.ObjBase):
         self.points_lock.acquire()
         
         try:
-            self.state_index = state_index
+            self.state_indices[0] = state_index
             self.server.update_tool(self)
             dypy.debug("DynamicsTool", "State index updated.")
         finally:

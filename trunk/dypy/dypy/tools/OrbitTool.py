@@ -15,7 +15,7 @@ class OrbitPoint():
         self.parameters = numpy.zeros(len(self.tool.parameter_ranges))
         
         for i in xrange(0, len(self.parameters)):
-            if i == self.tool.parameter_index:
+            if i == self.tool.parameter_indices[0]:
                 self.parameters[i] = kwds['varying_parameter']
             else:
                 self.parameters[i] = self.tool.parameter_ranges[i][0]
@@ -65,8 +65,10 @@ class OrbitTool(Tool):
         self.server.clear_each_frame = not(show_history)
     
     def get_bounds(self):
-        x_bounds = self.parameter_ranges[self.parameter_index]
-        y_bounds = self.state_ranges[self.state_index]
+        parameter_index = self.parameter_indices[0]
+        state_index = self.state_indices[0]
+        x_bounds = self.parameter_ranges[parameter_index]
+        y_bounds = self.state_ranges[state_index]
         z_bounds = [-1, 1]
         return x_bounds, y_bounds, z_bounds 
 
@@ -78,11 +80,12 @@ class OrbitTool(Tool):
             self.points = []
             
             # set parameter increment for each successive point on x-axis
-            parameter_increment = (self.parameter_ranges[self.parameter_index][1] - \
-                                   self.parameter_ranges[self.parameter_index][0]) / float(self.server.width)
+            parameter_index = self.parameter_indices[0]
+            parameter_increment = (self.parameter_ranges[parameter_index][1] - \
+                                   self.parameter_ranges[parameter_index][0]) / float(self.server.width)
             
             # set initial parameter
-            parameter = self.parameter_ranges[self.parameter_index][0]
+            parameter = self.parameter_ranges[parameter_index][0]
 
             for i in xrange(0, self.server.width):
                 for j in xrange(0, self.density):
@@ -105,15 +108,17 @@ class OrbitTool(Tool):
                
             for i in xrange(0, len(self.points)):
                 p = self.points[i]
+                parameter_index = self.parameter_indices[0]
+                state_index = self.state_indices[0]
 
                 glColor4f(1, 1, 1, p.age / (self.age_max*2.0))
-                glVertex2f(p.parameters[self.parameter_index], p.state[self.state_index])
+                glVertex2f(p.parameters[parameter_index], p.state[state_index])
                 
                 p.state = self.system.iterate(p.state, p.parameters)
                 p.age += 1
                 
                 if p.age >= self.age_max:
-                    self.points[i] = OrbitPoint(tool=self, varying_parameter=p.parameters[self.parameter_index])
+                    self.points[i] = OrbitPoint(tool=self, varying_parameter=p.parameters[parameter_index])
             
             glEnd()
         except Exception, detail:

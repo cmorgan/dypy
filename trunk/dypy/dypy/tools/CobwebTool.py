@@ -32,7 +32,8 @@ class CobwebTool(Tool):
         dypy.debug('CobwebTool', 'initialized')
     
     def get_bounds(self):
-        x_bounds = y_bounds = self.state_ranges[self.state_index]
+        state_index = self.state_indices[0]
+        x_bounds = y_bounds = self.state_ranges[state_index]
         z_bounds = [-1, 1]        
         return x_bounds, y_bounds, z_bounds
 
@@ -57,11 +58,12 @@ class CobwebTool(Tool):
             glColor4f(217/255.0, 115/255.0, 56/255.0, 0.9)
             
             p = CobwebPoint(tool=self)
+            state_index = self.state_indices[0]
             
-            for i in numpy.arange(self.state_ranges[self.state_index][0], self.state_ranges[self.state_index][1], 0.001):
-                p.state[self.state_index] = i
+            for i in numpy.arange(self.state_ranges[state_index][0], self.state_ranges[state_index][1], 0.001):
+                p.state[state_index] = i
                 state_new = self.system.iterate(p.state, p.parameters)
-                glVertex2f(i, state_new[self.state_index])
+                glVertex2f(i, state_new[state_index])
             
             glEnd()
             glEndList()    
@@ -73,8 +75,8 @@ class CobwebTool(Tool):
             glBegin(GL_LINES)
             glColor4f(217/255.0, 88/255.0, 41/255.0, 0.9)
             
-            glVertex2f(self.state_ranges[self.state_index][0], self.state_ranges[self.state_index][0])
-            glVertex2f(self.state_ranges[self.state_index][1], self.state_ranges[self.state_index][1])
+            glVertex2f(self.state_ranges[state_index][0], self.state_ranges[state_index][0])
+            glVertex2f(self.state_ranges[state_index][1], self.state_ranges[state_index][1])
             
             glEnd()
             glEndList()
@@ -93,12 +95,14 @@ class CobwebTool(Tool):
             glBegin(GL_LINE_STRIP)            
             glColor4f(1, 1, 1, 0.3)
             
+            state_index = self.state_indices[0]
+            
             for i in [1, 2]:
-                state_previous = self.point.state[self.state_index]
+                state_previous = self.point.state[state_index]
                 self.point.state = self.system.iterate(self.point.state, self.point.parameters)
             
                 glVertex2f(state_previous, state_previous)
-                glVertex2f(state_previous, self.point.state[self.state_index])
+                glVertex2f(state_previous, self.point.state[state_index])
             
             glEnd()
             
