@@ -19,18 +19,22 @@ class PortraitTool(Tool):
         Tool.__init__(self, name='Phase Portrait Visualization', description='An animated phase space portrait.', server=kwds['server'])
         dypy.debug('PortraitTool', 'initialized')
         
+        self.state_indices = [0, 1, 2]
         self.density = 100
         self.age_max = 1000
         self.server.hide_axes = False
  
     def get_bounds(self):
-        x_bounds = y_bounds = z_bounds = self.state_ranges[self.state_index]
+        state_index = self.state_indices[0]
+        x_bounds = y_bounds = z_bounds = self.state_ranges[state_index]
             
         if len(self.state_ranges) > 1:
-            y_bounds = self.state_ranges[self.state_index+1]
+            state_index = self.state_indices[1]
+            y_bounds = self.state_ranges[state_index]
         
         if len(self.state_ranges) > 2:
-            z_bounds = self.state_ranges[self.state_index+2]
+            state_index = self.state_indices[2]
+            z_bounds = self.state_ranges[state_index]
         
         return x_bounds, y_bounds, z_bounds
  
@@ -58,36 +62,39 @@ class PortraitTool(Tool):
         self.points_lock.acquire()
 
         try:
-            from pyglet.gl import glBegin, GL_POINTS, glColor4f, glVertex3f, glEnd
+            from pyglet.gl import glBegin, GL_POINTS, GL_LINES, glColor4f, glVertex3f, glEnd
             
             parameters = numpy.zeros(len(self.system.get_parameter_names()))
         
             for i in range(0, len(parameters)):
                 parameters[i] = self.parameter_ranges[i][0]          
             
-            glBegin(GL_POINTS)
+            #glBegin(GL_POINTS)
+            glBegin(GL_LINES)
             
             for i in xrange(0, self.density):
                 p = self.points[i]
                 
-                x = p.state[self.state_index]
-                y = 0
-                z = 0
+                for endpoint in [1, 2]:
+                    x = p.state[self.state_indices[0]]
+                    y = 0
+                    z = 0
+                    
+                    if len(self.state_ranges) > 1:
+                        y = p.state[self.state_indices[1]]
+                    
+                    if len(self.state_ranges) > 2:
+                        z = p.state[self.state_indices[2]]
+                    
+                    #glColor4f(1, 1, 1, p.age / (self.age_max*4.0))
+                    glColor4f(1, 1, 1, 0.2)
+                    glVertex3f(x, y, z)
+                    
+                    if endpoint == 1:
+                        p.state = self.system.iterate(p.state, parameters)
                 
-                if len(self.state_ranges) > 1:
-                    y = p.state[self.state_index+1]
-                
-                if len(self.state_ranges) > 2:
-                    z = p.state[self.state_index+2]
-                
-                glColor4f(1, 1, 1, p.age / (self.age_max*4.0))
-                glVertex3f(x, y, z)
-                
-                p.state = self.system.iterate(p.state, parameters)
-                p.age += 1
-                
-                if p.age >= self.age_max:
-                    self.points[i] = PortraitPoint(tool=self)
+                #if p.age >= self.age_max:
+                #    self.points[i] = PortraitPoint(tool=self)
         
             glEnd()
         except Exception, detail:

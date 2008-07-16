@@ -154,7 +154,9 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                     glLoadIdentity()
                     
                     dypy.debug("ToolServer", "Setting projection to %.1f %.1f %.1f %.1f %.1f %.1f" % (self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max))
-                    glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max)             
+                    glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max)
+                    
+                    self.iteration = 0             
                 
                 if self.clear_each_frame or self.iteration == 0:
                     glClear(GL_COLOR_BUFFER_BIT)
