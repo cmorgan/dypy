@@ -19,7 +19,6 @@ class PortraitTool(Tool):
         Tool.__init__(self, name='Phase Portrait Visualization', description='An animated phase space portrait.', server=kwds['server'])
         dypy.debug('PortraitTool', 'initialized')
         
-        self.state_indices = [0, 1, 2]
         self.density = 100
         self.age_max = 1000
         self.server.hide_axes = False
@@ -87,7 +86,7 @@ class PortraitTool(Tool):
                         z = p.state[self.state_indices[2]]
                     
                     #glColor4f(1, 1, 1, p.age / (self.age_max*4.0))
-                    glColor4f(1, 1, 1, 0.2)
+                    glColor4f(1, 1, 1, 0.1)
                     glVertex3f(x, y, z)
                     
                     if endpoint == 1:
