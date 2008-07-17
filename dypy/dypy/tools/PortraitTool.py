@@ -66,7 +66,7 @@ class PortraitTool(Tool):
             parameters = numpy.zeros(len(self.system.get_parameter_names()))
         
             for i in range(0, len(parameters)):
-                parameters[i] = self.parameter_ranges[i][0]          
+                parameters[i] = self.parameter_ranges[i][0]    
             
             #glBegin(GL_POINTS)
             glBegin(GL_LINES)
@@ -85,15 +85,11 @@ class PortraitTool(Tool):
                     if len(self.state_ranges) > 2:
                         z = p.state[self.state_indices[2]]
                     
-                    #glColor4f(1, 1, 1, p.age / (self.age_max*4.0))
                     glColor4f(1, 1, 1, 0.1)
                     glVertex3f(x, y, z)
                     
                     if endpoint == 1:
                         p.state = self.system.iterate(p.state, parameters)
-                
-                #if p.age >= self.age_max:
-                #    self.points[i] = PortraitPoint(tool=self)
         
             glEnd()
         except Exception, detail:
