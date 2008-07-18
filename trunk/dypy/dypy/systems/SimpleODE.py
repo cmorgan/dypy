@@ -5,7 +5,7 @@ class SimpleODE(ODE):
     def __init__(self):
         ODE.__init__(self, 'Simple System', ' ')
     
-    # list with one element is not unpacked like it should be
+    # list with one element is not unpacked like i expect it to be
     def derivative(self, (x, y, z), (mu)):
         xdot = 1 + mu[0]*y*z
         ydot = x - y

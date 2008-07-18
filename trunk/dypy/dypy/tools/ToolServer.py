@@ -37,9 +37,13 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
     def update_tool(self, tool):
         self.tool = tool
         self.tool_updated = True
+        self.reset_rotation()
+        self.iteration = 0
     
-    def get_tools(self):
-        return self.tools
+    def reset_rotation(self):
+        self.x_rotate = 0
+        self.y_rotate = 0
+        self.z_rotate = 0
     
     def pause(self):
         self.window_paused = True
@@ -78,16 +82,12 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.server.start()
         self.server.waitUntilStarted()
 
-        # for rotating points
-        self.x_rotate = 0
-        self.y_rotate = 0
-        self.z_rotate = 0
-        
         # visualization parameters
         self.clear_each_frame = False
         self.hide_axes = False
         self.rotation_velocity = 0.8
         self.iteration = 0
+        self.reset_rotation()
         self.set_axes_center()
         self.set_bounds((-1, 1), (-1, 1), (-1, 1), False)
         
@@ -117,8 +117,8 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
         
         # enable point anti-aliasing
-        glEnable(GL_POINT_SMOOTH)
-        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)    
+        #glEnable(GL_POINT_SMOOTH)
+        #glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)    
         
         # gl diagnostics
         dypy.debug("ToolServer", "GL version is %s." % gl_info.get_version())
@@ -154,9 +154,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                     glLoadIdentity()
                     
                     dypy.debug("ToolServer", "Setting projection to %.1f %.1f %.1f %.1f %.1f %.1f" % (self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max))
-                    glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max)
-                    
-                    self.iteration = 0             
+                    glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max)            
                 
                 if self.clear_each_frame or self.iteration == 0:
                     glClear(GL_COLOR_BUFFER_BIT)

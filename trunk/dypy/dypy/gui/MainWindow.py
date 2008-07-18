@@ -123,7 +123,7 @@ class MainWindow(wx.Frame):
 		dypy.debug("MainWindow", "Visualization started.\n")
 
 	# called when stop visualization clicked
-	def on_stop(self, event):
+	def on_stop(self, event = wx.CommandEvent()):
 		# enable selecting system and tool
 		self.main_panel.unlock()
 		
@@ -143,6 +143,7 @@ class MainWindow(wx.Frame):
 
 	def on_load_demo(self, event):
 		dypy.debug("MainWindow", "Loading demo from file.")
+		self.on_stop()
 
 		filter = "dypy Demo files (*.db)|*.db"
 		dialog = wx.FileDialog(self, message = "Choose demo file", \
@@ -183,7 +184,7 @@ class MainWindow(wx.Frame):
 
 	def on_save_demo(self, event):
 		dypy.debug("MainWindow", "Saving demo to file.")
-			
+		
 		dialog = Widgets.SaveDialog(self)
 		
 		if dialog.ShowModal() == wx.ID_OK:
@@ -234,7 +235,6 @@ class MainWindow(wx.Frame):
 	
 		try:
 			# signal server to close visualization window
-			# THIS BREAKS WHEN THE SERVER IS ALREADY CLOSED
 			self.server.on_close()
 		finally:
 			#close gui window
