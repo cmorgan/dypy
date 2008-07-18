@@ -47,7 +47,7 @@ class OrbitToolGUI(ToolGUI):
 		sizer.AddStretchSpacer(1)
 		
 		note = wx.StaticText(self, wx.ID_ANY, \
-		"* Minimum values used for fixed parameters in orbit display.")
+			"* Minimum values used for fixed parameters in orbit display.")
 		note.SetFont(Widgets.ItalicFont(8))
 		
 		sizer.Add(note, 0, wx.ALIGN_RIGHT | wx.ALL, 4)
@@ -56,11 +56,9 @@ class OrbitToolGUI(ToolGUI):
 		wx.EVT_CHOICE(self, self.state_choice.GetId(), self.on_state_selected)
 		wx.EVT_CHOICE(self, self.param_choice.GetId(), self.on_param_selected)
 		
-		wx.EVT_COMMAND_SCROLL(self, self.density_slider.GetId(), \
-		self.on_density_changed)
+		wx.EVT_COMMAND_SCROLL(self, self.density_slider.GetId(), self.on_density_changed)
 		
-		wx.EVT_COMMAND_SCROLL(self, self.age_slider.GetId(), \
-		self.on_age_changed)
+		wx.EVT_COMMAND_SCROLL(self, self.age_slider.GetId(), self.on_age_changed)
 		
 		wx.EVT_CHECKBOX(self, self.mode_check.GetId(), self.on_mode_selected)
 		
@@ -75,13 +73,11 @@ class OrbitToolGUI(ToolGUI):
 
 	def update_system(self, system):
 		# update state axis choices
-		states = system.get_state_names()
-		self.state_choice.SetItems(states)
+		self.state_choice.SetItems(system.get_state_names())
 		self.state_choice.SetSelection(0)
 		
 		# update parameter choices
-		params = system.get_parameter_names()
-		self.param_choice.SetItems(params)
+		self.param_choice.SetItems(system.get_parameter_names())
 		self.param_choice.SetSelection(0)
 		
 		dypy.debug("OrbitToolGUI", "Updated for system %s." % system.name)

@@ -12,15 +12,13 @@ class PortraitPoint():
         for i in xrange(0, len(self.state)):
             self.state[i] = random.uniform(tool.state_ranges[i][0], tool.state_ranges[i][1])
 
-        self.age = random.uniform(0, tool.age_max)
-
 class PortraitTool(Tool):
     def __init__(self, **kwds):
         Tool.__init__(self, name='Phase Portrait Visualization', description='An animated phase space portrait.', server=kwds['server'])
         dypy.debug('PortraitTool', 'initialized')
         
         self.density = 100
-        self.age_max = 1000
+        self.use_lines = False # if false, draw unconnected points
         self.server.hide_axes = False
  
     def get_bounds(self):
@@ -63,18 +61,26 @@ class PortraitTool(Tool):
         try:
             from pyglet.gl import glBegin, GL_POINTS, GL_LINES, glColor4f, glVertex3f, glEnd
             
+            # pack parameters into array
             parameters = numpy.zeros(len(self.system.get_parameter_names()))
         
             for i in range(0, len(parameters)):
                 parameters[i] = self.parameter_ranges[i][0]    
             
-            #glBegin(GL_POINTS)
-            glBegin(GL_LINES)
+            # draw lines or points
+            endpoints = [1]
+            
+            if self.use_lines:
+                glBegin(GL_LINES)
+                endpoints = [1, 2]
+            else:
+                glBegin(GL_POINTS)
             
             for i in xrange(0, self.density):
                 p = self.points[i]
                 
-                for endpoint in [1, 2]:
+                # draw two endpoints if using lines, iterating system after first endpoint
+                for endpoint in endpoints:
                     x = p.state[self.state_indices[0]]
                     y = 0
                     z = 0
