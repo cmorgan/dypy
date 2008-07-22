@@ -3,6 +3,7 @@ import Pyro.naming
 import threading
 import time
 import dypy
+from dypy.devices.P5Glove import P5Glove
 
 gl_lock = threading.Lock()
 
@@ -11,11 +12,13 @@ class PyroServer(threading.Thread):
         threading.Thread.__init__(self)
         self.starter = Pyro.naming.NameServerStarter()
         self.daemon = Pyro.core.Daemon(host='localhost')
-        self.setDaemon(True)
                       
     def run(self):
         self.starter.start(hostname='localhost')
-              
+    
+    def stop(self):
+        self.daemon.shutdown()
+    
     def waitUntilStarted(self):
         self.starter.waitUntilStarted()
         self.daemon.useNameServer(Pyro.naming.NameServerLocator().getNS())
@@ -32,7 +35,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
     
     def waitUntilStarted(self):
         while not self.ready:
-            time.sleep(1)   
+            time.sleep(0.1)   
     
     def update_tool(self, tool):
         self.tool = tool
@@ -78,9 +81,13 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.window.on_mouse_scroll = self.on_mouse_scroll
         
         # create and wait for object server
-        self.server = PyroServer()
-        self.server.start()
-        self.server.waitUntilStarted()
+        self.object_server = PyroServer()
+        self.object_server.start()
+        self.object_server.waitUntilStarted()
+        
+        # create p5 vr glove server
+        self.glove_server = P5Glove(tool_server=self)
+        self.glove_server.start()
 
         # visualization parameters
         self.clear_each_frame = False
@@ -95,16 +102,16 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         pyglet.clock.set_fps_limit(30)
         
         # create tools and connect them to server
-        self.server.daemon.connect(self, 'ToolServer')
+        self.object_server.daemon.connect(self, 'ToolServer')
         
         t = PortraitTool(server=self)
-        self.server.daemon.connect(t, 'PortraitTool')
+        self.object_server.daemon.connect(t, 'PortraitTool')
         
         t = CobwebTool(server=self)
-        self.server.daemon.connect(t, 'CobwebTool')
+        self.object_server.daemon.connect(t, 'CobwebTool')
         
         t = OrbitTool(server=self)
-        self.server.daemon.connect(t, 'OrbitTool')
+        self.object_server.daemon.connect(t, 'OrbitTool')
         
         self.update_tool(t)
         
@@ -187,18 +194,21 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                     self.window.flip()
     
                 # process server requests
-                socks = self.server.daemon.getServerSockets()
+                socks = self.object_server.daemon.getServerSockets()
                 ins, outs, exs = select.select(socks, [], [], 0)
                 
                 for s in socks:
                     if s in ins:
-                        self.server.daemon.handleRequests()
+                        self.object_server.daemon.handleRequests()
                         break
             except Exception, detail:
                 print type(detail), detail
             finally:
                 gl_lock.release()
-            
+        
+        dypy.debug("ToolServer", "Exiting")
+        self.object_server.stop()
+        self.glove_server.stop()
         self.window.close()
         
     def set_axes_center(self, x_center=0, y_center=0, z_center=0):
@@ -241,7 +251,6 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
 	
     def on_close(self):
         self.window.has_exit = True
-        self.server.daemon.shutdown()
     
     def on_resize(self, width, height):        
         self.window_resized = True
@@ -253,13 +262,13 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
 	    self.x_rotate += (dy * self.rotation_velocity) # change in y rotates around x-axis
 	    self.x_rotate %= 360
 	    
-	    self.iteration = 0
+	    #self.iteration = 0
 	
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
 	    self.z_rotate += (scroll_y * self.rotation_velocity)
 	    self.z_rotate %= 360
 	    
-	    self.iteration = 0
+	    #self.iteration = 0
 	
     def on_key_press(self, symbol, modifiers):  
         if symbol == 65293: # a button
