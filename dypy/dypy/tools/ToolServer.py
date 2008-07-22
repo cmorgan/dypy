@@ -12,6 +12,7 @@ class PyroServer(threading.Thread):
         threading.Thread.__init__(self)
         self.starter = Pyro.naming.NameServerStarter()
         self.daemon = Pyro.core.Daemon(host='localhost')
+        self.setDaemon(True)
                       
     def run(self):
         self.starter.start(hostname='localhost')
@@ -86,7 +87,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.object_server.waitUntilStarted()
         
         # create p5 vr glove server
-        self.glove_server = P5Glove(tool_server=self)
+        self.glove_server = P5Glove(self)
         self.glove_server.start()
 
         # visualization parameters
@@ -161,7 +162,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                     glLoadIdentity()
                     
                     dypy.debug("ToolServer", "Setting projection to %.1f %.1f %.1f %.1f %.1f %.1f" % (self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max))
-                    glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max)            
+                    glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max**2, self.dimension_max**2)            
                 
                 if self.clear_each_frame or self.iteration == 0:
                     glClear(GL_COLOR_BUFFER_BIT)
@@ -207,8 +208,8 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                 gl_lock.release()
         
         dypy.debug("ToolServer", "Exiting")
-        self.object_server.stop()
         self.glove_server.stop()
+        self.object_server.stop()
         self.window.close()
         
     def set_axes_center(self, x_center=0, y_center=0, z_center=0):
