@@ -3,7 +3,7 @@ import Pyro.naming
 import threading
 import time
 import dypy
-from dypy.devices.P5Glove import P5Glove
+from dypy.devices.P5Device import P5Device
 
 gl_lock = threading.Lock()
 
@@ -87,7 +87,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.object_server.waitUntilStarted()
         
         # create p5 vr glove server
-        self.glove_server = P5Glove(self)
+        self.glove_server = P5Device(self)
         self.glove_server.start()
 
         # visualization parameters
