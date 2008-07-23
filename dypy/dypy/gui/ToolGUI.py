@@ -4,7 +4,7 @@ import wx, dypy
 
 class ToolGUI(wx.Panel):
     def __init__(self, parent, name):
-        wx.Panel.__init__(self, parent, -1)
+        wx.Panel.__init__(self, parent)
         
         # get tool from tool server
         ns = Pyro.naming.NameServerLocator().getNS(host='localhost')
@@ -17,6 +17,9 @@ class ToolGUI(wx.Panel):
         
         self.set_parameter_ranges = self.tool.set_parameter_ranges
         self.set_state_ranges = self.tool.set_state_ranges
+        
+        # stay hidden when created
+        self.Hide()
     
     def update_system(self, system):
         assert 0, 'must be defined'      
