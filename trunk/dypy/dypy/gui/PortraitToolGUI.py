@@ -8,7 +8,7 @@ class PortraitToolGUI(ToolGUI):
         ToolGUI.__init__(self, parent, 'PortraitTool')
         
         # gui components: labels
-        mode_label    = Widgets.LabelText(self, "Select Visualization Mode:")        
+        mode_label = Widgets.LabelText(self, "Select Visualization Mode:")        
         
         # gui components: selection
         self.mode_check = Widgets.Checkbox(self, "Draw Lines")

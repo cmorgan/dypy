@@ -101,11 +101,11 @@ def readBlob(data):
 
 def readInt(data):
     if(len(data)<4):
-        #print "Error: too few bytes for int", data, len(data)
+        print "Error: too few bytes for int", data, len(data)
         rest = data
         integer = 0
     else:
-        integer = struct.unpack("i", data[0:4])[0]
+        integer = struct.unpack(">i", data[0:4])[0]
         rest    = data[4:]
         
     return (integer, rest)
@@ -115,7 +115,7 @@ def readInt(data):
 def readLong(data):
     """Tries to interpret the next 8 bytes of the data
     as a 64-bit signed integer."""
-    high, low = struct.unpack("ll", data[0:8])
+    high, low = struct.unpack(">ll", data[0:8])
     big = (long(high) << 32) + low
     rest = data[8:]
     return (big, rest)
@@ -124,11 +124,11 @@ def readLong(data):
 
 def readFloat(data):
     if(len(data)<4):
-        #print "Error: too few bytes for float", data, len(data)
+        print "Error: too few bytes for float", data, len(data)
         rest = data
         float = 0
     else:
-        float = struct.unpack("f", data[0:4])[0]
+        float = struct.unpack(">f", data[0:4])[0]
         rest  = data[4:]
 
     return (float, rest)
@@ -141,7 +141,7 @@ def OSCBlob(next):
     if type(next) == type(""):
         length = len(next)
         padded = math.ceil((len(next)) / 4.0) * 4
-        binary = struct.pack(">\i%ds" % (padded), length, next)
+        binary = struct.pack(">i%ds" % (padded), length, next)
         tag    = 'b'
     else:
         tag    = ''

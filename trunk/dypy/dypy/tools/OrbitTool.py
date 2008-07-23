@@ -40,7 +40,6 @@ class OrbitTool(Tool):
         
         self.age_max = 1000  
         self.density = 3
-        self.server.hide_axes = True
         self.server.clear_each_frame = True
 
     def set_age_max(self, age_max):

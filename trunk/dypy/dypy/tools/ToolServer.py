@@ -4,6 +4,7 @@ import threading
 import time
 import dypy
 from dypy.devices.P5Device import P5Device
+from dypy.devices.WiimoteDevice import WiimoteDevice
 
 gl_lock = threading.Lock()
 
@@ -25,7 +26,7 @@ class PyroServer(threading.Thread):
         self.daemon.useNameServer(Pyro.naming.NameServerLocator().getNS())
         dypy.debug("PyroServer", "Listening on port " + str(self.daemon.port))
 
-class ToolServer(Pyro.core.ObjBase, threading.Thread):    
+class ToolServer(Pyro.core.ObjBase, threading.Thread):  
     def __init__(self, **kwds):
         Pyro.core.ObjBase.__init__(self)        
         threading.Thread.__init__(self)
@@ -33,6 +34,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.width = kwds['width']
         self.height = kwds['height']
         self.ready = 0
+        self.fps = 40
     
     def waitUntilStarted(self):
         while not self.ready:
@@ -89,6 +91,10 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         # create p5 vr glove server
         self.glove_server = P5Device(self)
         self.glove_server.start()
+        
+        # create nintento wiimote server
+        self.wiimote_server = WiimoteDevice(self)
+        self.wiimote_server.start()
 
         # visualization parameters
         self.clear_each_frame = False
@@ -100,7 +106,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.set_bounds((-1, 1), (-1, 1), (-1, 1), False)
         
         # don't hog more cpu than is useful
-        pyglet.clock.set_fps_limit(30)
+        pyglet.clock.set_fps_limit(self.fps)
         
         # create tools and connect them to server
         self.object_server.daemon.connect(self, 'ToolServer')
@@ -180,8 +186,10 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                 glRotatef(self.z_rotate, 0, 0, 1)
     			
                 # draw reference axes
-                if not self.hide_axes and (self.clear_each_frame or self.iteration == 0):
-                    self.draw_axes() 
+                #if not self.hide_axes and (self.clear_each_frame or self.iteration == 0):
+                if not self.hide_axes:
+                    self.draw_axes()
+                    self.hide_axes = True
     			
                 # translate back to lower left corner
                 glTranslatef(-self.x_center, -self.y_center, -self.z_center)    
@@ -209,6 +217,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         
         dypy.debug("ToolServer", "Exiting")
         self.glove_server.stop()
+        self.wiimote_server.stop()
         self.object_server.stop()
         self.window.close()
         
@@ -257,19 +266,21 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.window_resized = True
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):    
-	    self.y_rotate += (dx * self.rotation_velocity) # change in x rotates around y-axis
-	    self.y_rotate %= 360
-	    
-	    self.x_rotate += (dy * self.rotation_velocity) # change in y rotates around x-axis
-	    self.x_rotate %= 360
-	    
-	    #self.iteration = 0
+        self.y_rotate += (dx * self.rotation_velocity) # change in x rotates around y-axis
+        self.y_rotate %= 360
+
+        self.x_rotate += (dy * self.rotation_velocity) # change in y rotates around x-axis
+        self.x_rotate %= 360
+        
+        self.hide_axes = False
+        self.iteration = 0
 	
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
-	    self.z_rotate += (scroll_y * self.rotation_velocity)
-	    self.z_rotate %= 360
+        self.z_rotate += (scroll_y * self.rotation_velocity)
+        self.z_rotate %= 360
 	    
-	    #self.iteration = 0
+        self.hide_axes = False
+        self.iteration = 0
 	
     def on_key_press(self, symbol, modifiers):  
         if symbol == 65293: # a button

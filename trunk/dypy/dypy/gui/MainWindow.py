@@ -37,9 +37,9 @@ class MainWindow(wx.Frame):
 		
 		self.notebook = wx.Notebook(panel, wx.ID_ANY, style = wx.NB_BOTTOM)
 		self.notebook.SetFont(Widgets.PlainFont())
-		self.notebook.AddPage(wx.Panel(self.notebook, wx.ID_ANY), "(Main Tab)")
-		self.notebook.AddPage(wx.Panel(self.notebook, wx.ID_ANY), "(System Tab)")
-		self.notebook.AddPage(wx.Panel(self.notebook, wx.ID_ANY), "(Tool Tab)")
+		self.notebook.AddPage(wx.Panel(self.notebook, wx.ID_ANY), "(Main Tab)", True)
+		self.notebook.AddPage(wx.Panel(self.notebook, wx.ID_ANY), "(System Tab)", False)
+		self.notebook.AddPage(wx.Panel(self.notebook, wx.ID_ANY), "(Tool Tab)", False)
 		
 		self.start_button = wx.Button(panel, wx.ID_ANY, "Start Visualization")
 		self.start_button.SetFont(Widgets.BoldFont())
@@ -59,8 +59,7 @@ class MainWindow(wx.Frame):
 		dypy.debug("MainWindow", "Loaded %d demos." % len(self.demos))
 		
 		# define tools
-		self.tools = [OrbitToolGUI(self.notebook), PortraitToolGUI(self.notebook), \
-					  CobwebToolGUI(self.notebook)]
+		self.tools = [OrbitToolGUI(self.notebook), CobwebToolGUI(self.notebook), PortraitToolGUI(self.notebook)]
 		self.active_tool = self.tools[0]
 		dypy.debug("MainWindow", "Loaded %d tools." % len(self.tools))
 	
