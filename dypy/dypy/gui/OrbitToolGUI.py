@@ -57,7 +57,6 @@ class OrbitToolGUI(ToolGUI):
 		wx.EVT_CHOICE(self, self.param_choice.GetId(), self.on_param_selected)
 		
 		wx.EVT_COMMAND_SCROLL(self, self.density_slider.GetId(), self.on_density_changed)
-		
 		wx.EVT_COMMAND_SCROLL(self, self.age_slider.GetId(), self.on_age_changed)
 		
 		wx.EVT_CHECKBOX(self, self.mode_check.GetId(), self.on_mode_selected)

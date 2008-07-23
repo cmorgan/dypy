@@ -19,7 +19,6 @@ class PortraitTool(Tool):
         
         self.density = 100
         self.use_lines = False # if false, draw unconnected points
-        self.server.hide_axes = False
  
     def get_bounds(self):
         state_index = self.state_indices[0]
