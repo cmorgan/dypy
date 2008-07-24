@@ -40,7 +40,7 @@ class OrbitTool(Tool):
         
         self.age_max = 1000  
         self.density = 3
-        self.server.clear_each_frame = True
+        self.clear_each_frame = True
 
     def set_age_max(self, age_max):
         self.points_lock.acquire()
@@ -61,7 +61,7 @@ class OrbitTool(Tool):
             self.points_lock.release()
     
     def set_show_history(self, show_history):
-        self.server.clear_each_frame = not(show_history)
+        self.clear_each_frame = not(show_history)
     
     def get_bounds(self):
         parameter_index = self.parameter_indices[0]

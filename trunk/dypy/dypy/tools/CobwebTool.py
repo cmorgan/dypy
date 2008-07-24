@@ -107,7 +107,7 @@ class CobwebTool(Tool):
             glEnd()
             
             # call display lists, doesn't work in init_points()
-            if self.server.iteration == 0:
+            if self.server.iteration <= 1:
                 glCallList(self.iterate_list)            
                 glCallList(self.reflection_list)
         except Exception, detail:

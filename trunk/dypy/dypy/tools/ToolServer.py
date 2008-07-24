@@ -123,9 +123,8 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         
         self.update_tool(t)
         
-        # enable alpha blending
+        # set alpha blending function
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_BLEND)
         
         # enable line anti-aliasing
         glEnable(GL_LINE_SMOOTH)
@@ -190,7 +189,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                     glRotatef(self.z_rotate, 0, 0, 1)
         			
                     # clear iteration 0 as well as iteration 1 to clear axes after rotation
-                    if self.iteration <= 1:
+                    if self.iteration <= 1 or self.tool.clear_each_frame:
                         glClear(GL_COLOR_BUFFER_BIT)
                         glEnable(GL_BLEND)
                         
@@ -198,7 +197,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                     if self.iteration == 0:
                         self.draw_axes()
                         glDisable(GL_BLEND)
-        			
+                    
                     # translate back to lower left corner
                     glTranslatef(-self.x_center, -self.y_center, -self.z_center)    
         
