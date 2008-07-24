@@ -34,7 +34,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.width = kwds['width']
         self.height = kwds['height']
         self.ready = 0
-        self.fps = 40
+        self.fps = 60
     
     def waitUntilStarted(self):
         while not self.ready:
@@ -51,14 +51,15 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.y_rotate = 0
         self.z_rotate = 0
     
+    # pause and unpause functions needed so pyglet window is adjusted inside the lock
     def pause(self):
-        self.window_paused = True
-        self.window.set_visible(False)
-    
+        self.visible = False
+        self.visibility_changed = True
+     
     def unpause(self):
-        self.window_paused = False
-        self.window.set_visible(True)
-    
+        self.visible = True
+        self.visibility_changed = True
+     
     def run(self):
         import pyglet
         pyglet.options['debug_gl'] = False        
@@ -70,7 +71,8 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         from pyglet.gl import glBlendFunc, glEnable, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, \
             GL_BLEND, glClear, GL_COLOR_BUFFER_BIT, glMatrixMode, GL_PROJECTION, GL_MODELVIEW, \
             glLoadIdentity, glTranslatef, glRotatef, gl_info, glViewport, glOrtho, \
-            glHint, GL_POINT_SMOOTH, GL_LINE_SMOOTH, GL_POINT_SMOOTH_HINT, GL_LINE_SMOOTH_HINT, GL_NICEST
+            glHint, GL_POINT_SMOOTH, GL_LINE_SMOOTH, GL_POINT_SMOOTH_HINT, GL_LINE_SMOOTH_HINT, GL_NICEST, \
+            glDisable
         import pyglet.clock
         import pyglet.window
         import select
@@ -98,7 +100,6 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
 
         # visualization parameters
         self.clear_each_frame = False
-        self.hide_axes = False
         self.rotation_velocity = 0.8
         self.iteration = 0
         self.reset_rotation()
@@ -143,14 +144,19 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.ready = True
         self.tool_updated = False
         self.window_resized = False
-        self.window_paused = True
+        self.visible = False
+        self.visibility_changed = False
 
-        while not self.window.has_exit:
+        while not self.window.has_exit:            
             pyglet.clock.tick()          
             gl_lock.acquire()
             
             try:
                 self.window.dispatch_events()
+                
+                if self.visibility_changed:
+                    self.visibility_changed = False
+                    self.window.set_visible(self.visible)
                 
                 if self.tool_updated:
                     self.tool_updated = False
@@ -170,32 +176,33 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                     dypy.debug("ToolServer", "Setting projection to %.1f %.1f %.1f %.1f %.1f %.1f" % (self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max, self.dimension_max))
                     glOrtho(self.x_min, self.x_max, self.y_min, self.y_max, -self.dimension_max**2, self.dimension_max**2)            
                 
-                if self.clear_each_frame or self.iteration == 0:
-                    glClear(GL_COLOR_BUFFER_BIT)
-    		    
-    			# reset model matrix
-                glMatrixMode(GL_MODELVIEW)
-                glLoadIdentity()
-    			
-                # translate to center
-                glTranslatef(self.x_center, self.y_center, self.z_center)
-    			
-                # rotate around axes
-                glRotatef(self.x_rotate, 1, 0, 0)
-                glRotatef(self.y_rotate, 0, 1, 0)
-                glRotatef(self.z_rotate, 0, 0, 1)
-    			
-                # draw reference axes
-                #if not self.hide_axes and (self.clear_each_frame or self.iteration == 0):
-                if not self.hide_axes:
-                    self.draw_axes()
-                    self.hide_axes = True
-    			
-                # translate back to lower left corner
-                glTranslatef(-self.x_center, -self.y_center, -self.z_center)    
-    
-                # tell the tool to draw its content
-                if not self.window_paused:
+                if self.window.visible:
+        			# reset model matrix
+                    glMatrixMode(GL_MODELVIEW)
+                    glLoadIdentity()
+        			
+                    # translate to center
+                    glTranslatef(self.x_center, self.y_center, self.z_center)
+        			
+                    # rotate around axes
+                    glRotatef(self.x_rotate, 1, 0, 0)
+                    glRotatef(self.y_rotate, 0, 1, 0)
+                    glRotatef(self.z_rotate, 0, 0, 1)
+        			
+                    # clear iteration 0 as well as iteration 1 to clear axes after rotation
+                    if self.iteration <= 1:
+                        glClear(GL_COLOR_BUFFER_BIT)
+                        glEnable(GL_BLEND)
+                        
+                    # draw reference axes during rotation only
+                    if self.iteration == 0:
+                        self.draw_axes()
+                        glDisable(GL_BLEND)
+        			
+                    # translate back to lower left corner
+                    glTranslatef(-self.x_center, -self.y_center, -self.z_center)    
+        
+                    # tell the tool to draw its content
                     self.tool.draw_points()
     
                     # iteration is done, swap display buffers
@@ -229,7 +236,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
     def draw_axes(self):
         from pyglet.gl import glColor4f, glVertex3f, glBegin, glEnd, GL_LINES
         
-        glColor4f(0xff/255.0, 0x99/255.0, 0x4d/255.0, 0.2)
+        glColor4f(0xff/255.0, 0x99/255.0, 0x4d/255.0, 0.8)
 	    
         glBegin(GL_LINES)
         glVertex3f(-self.dimension_max**2, 0, 0)
@@ -272,21 +279,18 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.x_rotate += (dy * self.rotation_velocity) # change in y rotates around x-axis
         self.x_rotate %= 360
         
-        self.hide_axes = False
         self.iteration = 0
 	
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         self.z_rotate += (scroll_y * self.rotation_velocity)
         self.z_rotate %= 360
 	    
-        self.hide_axes = False
         self.iteration = 0
 	
     def on_key_press(self, symbol, modifiers):  
         if symbol == 65293: # a button
 	        self.x_rotate = self.y_rotate = self.z_rotate = self.iteration = 0
         elif symbol == 65289: # b button
-	        self.hide_axes = not(self.hide_axes)
 	        self.iteration = 0
         elif symbol == 65363: # right
 	        self.on_mouse_drag(0, 0, -10, 0, 0 ,0)
