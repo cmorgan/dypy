@@ -13,6 +13,7 @@ class Tool(Pyro.core.ObjBase):
         self.state_indices = [0, 1, 2]
         self.parameter_ranges = [(-1, 1)]
         self.state_ranges = [(-1, 1)]
+        self.clear_each_frame = False
         
         self.points_lock = threading.Lock()
         

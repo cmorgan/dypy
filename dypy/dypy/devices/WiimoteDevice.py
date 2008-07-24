@@ -28,15 +28,6 @@ class WiimoteDevice(Device):
         if name.endswith("pry/2"):
             self.parse_field(rest, 'yaw', 'z')
         
-        if name.endswith("/xyz/0"):
-            self.parse_field(rest, 'x', 'x')
-
-        if name.endswith("/xyz/1"):
-            self.parse_field(rest, 'y', 'y')
-        
-        if name.endswith("/xyz/2"):
-            self.parse_field(rest, 'z', 'z')
-        
         if name.endswith("button/A"):
             self.a = self.readFloat(rest)[0]
             
