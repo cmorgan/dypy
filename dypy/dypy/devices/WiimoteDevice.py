@@ -1,11 +1,14 @@
 from Device import *
+import numpy
 import OSC
 import struct
 
 class WiimoteDevice(Device):
     def __init__(self, tool_server, port=9000):
-        Device.__init__(self, device_name="WiiMote", tool_server=tool_server, port=port, speed=120.0)
-        self.threshold = 0.01
+        Device.__init__(self, device_name="WiiMote", tool_server=tool_server, port=port, speed=180.0)
+        self.threshold = 0.001
+        self.a = 0
+        self.b = 0
 
     def parse_function(self, data):
         # OSCulator uses big endian, OSC.py uses big endian
@@ -17,55 +20,52 @@ class WiimoteDevice(Device):
         type, rest = OSC.readString(rest)
         
         if name.endswith("/pry/0"):
-            pitch = 0
-            
-            try:
-                pitch = self.readFloat(rest)[0]
-                self.dx = pitch - self.pitch_old
-                
-                if self.b and self.dx > self.threshold:
-                    self.tool_server.on_mouse_drag(0, 0, self.speed*self.dx, 0, 0, 0)
-            except AttributeError:
-                pass
-            
-            self.pitch_old = pitch
-            
+            self.parse_field(rest, 'pitch', 'y')
+
         if name.endswith("pry/1"):
-            roll = 0
-            
-            try:
-                roll = self.readFloat(rest)[0]
-                self.dy = roll - self.roll_old
-                
-                if self.b and self.dy > self.threshold:
-                    self.tool_server.on_mouse_drag(0, 0, 0, self.speed*self.dy, 0, 0)
-            except AttributeError:
-                pass
-                        
-            self.roll_old = roll
+            self.parse_field(rest, 'roll', 'x')
         
         if name.endswith("pry/2"):
-            yaw = 0
-            
-            try:
-                yaw = self.readFloat(rest)[0]
-                self.dz = yaw - self.yaw_old
-                
-                if self.b and self.dz > self.threshold:
-                    self.tool_server.on_mouse_scroll(0, 0, 0, self.speed*self.dz)
-            except AttributeError:
-                pass
-                            
-            self.yaw_old = yaw
+            self.parse_field(rest, 'yaw', 'z')
         
-        if name.endswith("pry/3"):
-            accel = self.readFloat(rest)[0]
+        if name.endswith("/xyz/0"):
+            self.parse_field(rest, 'x', 'x')
+
+        if name.endswith("/xyz/1"):
+            self.parse_field(rest, 'y', 'y')
+        
+        if name.endswith("/xyz/2"):
+            self.parse_field(rest, 'z', 'z')
         
         if name.endswith("button/A"):
             self.a = self.readFloat(rest)[0]
             
         if name.endswith("button/B"):
-            self.b = self.readFloat(rest)[0]  
+            self.b = self.readFloat(rest)[0]
+    
+    def parse_field(self, rest, field, axis):
+        value = self.readFloat(rest)[0]
+              
+        try:    
+            value_old = getattr(self, field)
+            self.delta = value - value_old
+        except AttributeError, detail:
+            self.delta = 0
+        
+        setattr(self, field, value)
+        
+        # only rotate when b button is held  
+        if self.b:
+            #print field, value, self.delta
+            
+            # ignore tiny jitters
+            if numpy.abs(self.delta) > self.threshold:
+                if axis == 'x':
+                    self.tool_server.on_mouse_drag(0, 0, self.speed*self.delta, 0, 0, 0)
+                elif axis == 'y':
+                    self.tool_server.on_mouse_drag(0, 0, 0, -self.speed*self.delta, 0, 0)      
+                elif axis == 'z':
+                    self.tool_server.on_mouse_scroll(0, 0, 0, -self.speed*self.delta)
 
     def readFloat(self, data):
         if(len(data)<4):
