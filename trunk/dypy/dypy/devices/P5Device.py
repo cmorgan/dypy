@@ -4,7 +4,7 @@ import struct
 
 class P5Device(Device):
     def __init__(self, tool_server, port=7000):
-        Device.__init__(self, device_name='P5Glove', tool_server=tool_server, port=port, speed=0.2)
+        Device.__init__(self, device_name='P5Glove', tool_server=tool_server, port=port, speed=0.5)
 
     def parse_function(self, data):
         # OSC.py uses big endian, OSC.readInt changed to little endian for p5osc
@@ -17,7 +17,7 @@ class P5Device(Device):
             return
         
         junk, rest      = OSC.readString(rest)         
-        a, rest         = self.readInt(rest)
+        a, rest    = self.readInt(rest)
         b, rest         = self.readInt(rest)
         c, rest         = self.readInt(rest)
         thumb, rest     = self.readInt(rest)
@@ -33,9 +33,11 @@ class P5Device(Device):
             self.dx = self.speed * (x - self.x_old)
             self.dy = self.speed * (y - self.y_old)
             self.dz = self.speed * (z - self.z_old)    
-            
-            self.tool_server.on_mouse_drag(0, 0, self.dx, self.dy, 0, 0)
-            self.tool_server.on_mouse_scroll(0, 0, 0, self.dz)  
+       
+            # if hand is at least semi clenched, enable rotation
+            if index > 30 and index > 30:
+                self.tool_server.on_mouse_drag(0, 0, self.dx, -self.dy, 0, 0)
+                self.tool_server.on_mouse_scroll(0, 0, 0, self.dz)  
         else:
             self.initialized = True
             

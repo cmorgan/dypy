@@ -17,7 +17,7 @@ class PortraitTool(Tool):
         Tool.__init__(self, name='Phase Portrait Visualization', description='An animated phase space portrait.', server=kwds['server'])
         dypy.debug('PortraitTool', 'initialized')
         
-        self.density = 100
+        self.density = 150
         self.use_lines = False # if false, draw unconnected points
  
     def get_bounds(self):
