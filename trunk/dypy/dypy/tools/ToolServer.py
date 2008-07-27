@@ -84,6 +84,8 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.window.on_key_press = self.on_key_press
         self.window.on_mouse_drag = self.on_mouse_drag
         self.window.on_mouse_scroll = self.on_mouse_scroll
+        self.window.on_mouse_press = self.on_mouse_press
+        self.window.on_mouse_release = self.on_mouse_release
         
         # create and wait for object server
         self.object_server = PyroServer()
@@ -145,6 +147,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.window_resized = False
         self.visible = False
         self.visibility_changed = False
+        self.show_axes = False
 
         while not self.window.has_exit:            
             pyglet.clock.tick()          
@@ -194,7 +197,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
                         glEnable(GL_BLEND)
                         
                     # draw reference axes during rotation only
-                    if self.iteration == 0:
+                    if self.show_axes:
                         self.draw_axes()
                         glDisable(GL_BLEND)
                     
@@ -271,7 +274,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
     def on_resize(self, width, height):        
         self.window_resized = True
 
-    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):    
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers): 
         self.y_rotate += (dx * self.rotation_velocity) # change in x rotates around y-axis
         self.y_rotate %= 360
 
@@ -286,6 +289,13 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
 	    
         self.iteration = 0
 	
+    def on_mouse_press(self, x, y, button, modifiers):
+        self.show_axes = True
+
+    def on_mouse_release(self, x, y, button, modifiers):
+        self.show_axes = False
+        self.iteration = 0
+    
     def on_key_press(self, symbol, modifiers):  
         if symbol == 65293: # a button
 	        self.x_rotate = self.y_rotate = self.z_rotate = self.iteration = 0

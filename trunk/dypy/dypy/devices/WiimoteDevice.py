@@ -32,7 +32,14 @@ class WiimoteDevice(Device):
             self.a = self.readFloat(rest)[0]
             
         if name.endswith("button/B"):
-            self.b = self.readFloat(rest)[0]
+            b = self.readFloat(rest)[0]
+            
+            if self.b and not b:
+                self.tool_server.on_mouse_release(0, 0, 0, 0)
+            elif not self.b and b:
+                self.tool_server.on_mouse_press(0, 0, 0, 0)               
+            
+            self.b = b
     
     def parse_field(self, rest, field, axis):
         value = self.readFloat(rest)[0]
@@ -47,8 +54,6 @@ class WiimoteDevice(Device):
         
         # only rotate when b button is held  
         if self.b:
-            #print field, value, self.delta
-            
             # ignore tiny jitters
             if numpy.abs(self.delta) > self.threshold:
                 if axis == 'x':
