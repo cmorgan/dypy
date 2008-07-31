@@ -42,14 +42,18 @@ class WiimoteDevice(Device):
             self.b = b
     
     def parse_field(self, rest, field, axis):
+        # get new value
         value = self.readFloat(rest)[0]
               
-        try:    
+        try:
+            # get old value and subtract
             value_old = getattr(self, field)
             self.delta = value - value_old
         except AttributeError, detail:
+            # if old value wasn't set, don't rotate yet
             self.delta = 0
         
+        # update previous with new value
         setattr(self, field, value)
         
         # only rotate when b button is held  

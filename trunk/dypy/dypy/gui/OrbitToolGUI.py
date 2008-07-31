@@ -90,14 +90,14 @@ class OrbitToolGUI(ToolGUI):
 
 	def on_state_selected(self, event = wx.CommandEvent()):
 		index = self.state_choice.GetSelection()
-		self.tool.set_state_index(index)
+		self.tool.set_state_index(0, index)
 
 		dypy.debug("OrbitToolGUI", "State axis is now %s." \
 		% self.state_choice.GetStringSelection())
 
 	def on_param_selected(self, event = wx.CommandEvent()):
 		index = self.param_choice.GetSelection()
-		self.tool.set_parameter_index(index)
+		self.tool.set_parameter_index(0, index)
 		
 		dypy.debug("OrbitToolGUI", "Parameter is now %s." \
 		% self.param_choice.GetStringSelection())

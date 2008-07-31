@@ -12,11 +12,11 @@ class PyroServer(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.starter = Pyro.naming.NameServerStarter()
-        self.daemon = Pyro.core.Daemon(host='localhost')
+        self.daemon = Pyro.core.Daemon(host='127.0.0.1')
         self.setDaemon(True)
                       
     def run(self):
-        self.starter.start(hostname='localhost')
+        self.starter.start(hostname='127.0.0.1')
     
     def stop(self):
         self.daemon.shutdown()
@@ -71,8 +71,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         from pyglet.gl import glBlendFunc, glEnable, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, \
             GL_BLEND, glClear, GL_COLOR_BUFFER_BIT, glMatrixMode, GL_PROJECTION, GL_MODELVIEW, \
             glLoadIdentity, glTranslatef, glRotatef, gl_info, glViewport, glOrtho, \
-            glHint, GL_POINT_SMOOTH, GL_LINE_SMOOTH, GL_POINT_SMOOTH_HINT, GL_LINE_SMOOTH_HINT, GL_NICEST, \
-            glDisable
+            glHint, GL_LINE_SMOOTH, GL_LINE_SMOOTH_HINT, GL_NICEST, glDisable
         import pyglet.clock
         import pyglet.window
         import select
@@ -101,7 +100,6 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         self.wiimote_server.start()
 
         # visualization parameters
-        self.clear_each_frame = False
         self.rotation_velocity = 0.8
         self.iteration = 0
         self.reset_rotation()
@@ -130,11 +128,7 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         
         # enable line anti-aliasing
         glEnable(GL_LINE_SMOOTH)
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
-        
-        # enable point anti-aliasing
-        #glEnable(GL_POINT_SMOOTH)
-        #glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)    
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)   
         
         # gl diagnostics
         dypy.debug("ToolServer", "GL version is %s." % gl_info.get_version())
