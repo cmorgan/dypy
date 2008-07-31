@@ -3,9 +3,8 @@ class ODE():
         self.name = name
         self.description = description
     
-    def iterate(self, state, parameters):
-        #return self.integrate_euler(state, parameters, 0.1)
-        return self.integrate(state, parameters, 0.01)
+    def iterate(self, state, parameters, dt=0.01):
+        return self.integrate(state, parameters, dt)
     
     def derivative(self, state, parameters):
         assert 0, "must be defined"
