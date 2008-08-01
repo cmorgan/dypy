@@ -3,7 +3,7 @@ class Map:
         self.name = name
         self.description = description
     
-    def iterate(self, state, parameters):
+    def iterate(self, state, parameters, dt=1):
         assert 0, "must be defined"
     
     def derivative(self, state, parameters):
