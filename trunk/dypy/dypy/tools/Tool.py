@@ -31,21 +31,21 @@ class Tool(Pyro.core.ObjBase):
         finally:
             self.points_lock.release()
     
-    def set_parameter_index(self, parameter_index, value):
+    def set_parameter_index(self, axis_index, parameter_index):
         self.points_lock.acquire()
         
         try:
-            self.parameter_indices[parameter_index] = value 
+            self.parameter_indices[axis_index] = parameter_index 
             self.server.update_tool(self)
             dypy.debug("DynamicsTool", "Parameter index updated.")
         finally:
             self.points_lock.release()
     
-    def set_state_index(self, state_index, value):
+    def set_state_index(self, axis_index, state_index):
         self.points_lock.acquire()
         
         try:
-            self.state_indices[state_index] = value
+            self.state_indices[axis_index] = state_index
             self.server.update_tool(self)
             dypy.debug("DynamicsTool", "State index updated.")
         finally:

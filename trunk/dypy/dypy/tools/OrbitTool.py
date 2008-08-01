@@ -113,7 +113,7 @@ class OrbitTool(Tool):
                 glColor4f(1, 1, 1, p.age / (self.age_max*2.0))
                 glVertex2f(p.parameters[parameter_index], p.state[state_index])
                 
-                p.state = self.system.iterate(p.state, p.parameters, 0.05)
+                p.state = self.system.iterate(p.state, p.parameters)
                 p.age += 1
                 
                 #if p.age >= self.age_max:
