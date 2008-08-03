@@ -8,10 +8,6 @@ class TinkerbellMap(Map):
     def iterate(self, (x, y), (a, b, c, d)):
         return x**2 - y**2 + a*x + b*y, 2*x*y + c*x + d*y
     
-    # fix
-    def derivative(self, x, r):
-        return -r * numpy.sin(x)
-    
     def get_parameter_names(self):
         return ['a', 'b', 'c', 'd']
 

@@ -8,10 +8,6 @@ class CircleMap(Map):
     def iterate(self, theta, (k, omega)):
         return theta + omega - k/(2*numpy.pi) * numpy.sin(2*numpy.pi*theta)
     
-    # fix
-    def derivative(self, x, r):
-        return -r * numpy.sin(x)
-    
     def get_parameter_names(self):
         return ['k', 'omega']
 
