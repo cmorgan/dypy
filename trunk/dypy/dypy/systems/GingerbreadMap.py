@@ -8,10 +8,6 @@ class GingerbreadMap(Map):
     def iterate(self, (x, y), none):
         return 1 - y + numpy.abs(x), x
     
-    # fix
-    def derivative(self, x, r):
-        return -r * numpy.sin(x)
-    
     def get_parameter_names(self):
         return ['none']
 

@@ -7,11 +7,7 @@ class SinaiMap(Map):
 
     def iterate(self, (x, y), alpha):
         return (x + y + alpha*numpy.cos(2*numpy.pi*y)) % 1, (x + 2*y) % 1
-    
-    # fix
-    def derivative(self, x, r):
-        return -r * numpy.sin(x)
-    
+
     def get_parameter_names(self):
         return ['alpha']
 
