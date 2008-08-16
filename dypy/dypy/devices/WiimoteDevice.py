@@ -1,7 +1,6 @@
 from Device import *
 import numpy
 import OSC
-import struct
 
 class WiimoteDevice(Device):
     def __init__(self, tool_server, port=9000):
@@ -66,16 +65,6 @@ class WiimoteDevice(Device):
                     self.tool_server.on_mouse_drag(0, 0, 0, -self.speed*self.delta, 0, 0)      
                 elif axis == 'z':
                     self.tool_server.on_mouse_scroll(0, 0, 0, -self.speed*self.delta)
-
-    def readFloat(self, data):
-        if(len(data)<4):
-            rest = data
-            float = 0
-        else:
-            float = struct.unpack(">f", data[0:4])[0]
-            rest  = data[4:]
-    
-        return (float, rest)
 
 if __name__ == '__main__':
     wiimote_server = WiimoteDevice(FakeServer())

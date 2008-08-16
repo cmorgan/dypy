@@ -5,6 +5,7 @@ import time
 import dypy
 from dypy.devices.P5Device import P5Device
 from dypy.devices.WiimoteDevice import WiimoteDevice
+from dypy.devices.SpaceNavigatorDevice import SpaceNavigatorDevice
 
 gl_lock = threading.Lock()
 
@@ -98,6 +99,10 @@ class ToolServer(Pyro.core.ObjBase, threading.Thread):
         # create nintento wiimote server
         self.wiimote_server = WiimoteDevice(self)
         self.wiimote_server.start()
+        
+        # create 3Dconnexion space navigator server
+        self.sn_server = SpaceNavigatorDevice(self)
+        self.sn_server.start() 
 
         # visualization parameters
         self.rotation_velocity = 0.8
