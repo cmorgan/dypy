@@ -1,5 +1,6 @@
 import dypy
 import socket
+import struct
 import threading
 
 class Device(threading.Thread):
@@ -32,6 +33,16 @@ class Device(threading.Thread):
     
     def parse_function(self, data):
         assert 0, "must be defined"
+        
+    def readFloat(self, data):
+        if(len(data)<4):
+            rest = data
+            float = 0
+        else:
+            float = struct.unpack(">f", data[0:4])[0]
+            rest  = data[4:]
+    
+        return (float, rest)
 
 class FakeServer():
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):    
