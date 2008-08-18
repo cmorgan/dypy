@@ -4,7 +4,9 @@ import usb
 
 class SpaceNavigatorDevice(Device):
     def __init__(self, tool_server, port=9001):
-        Device.__init__(self, device_name='SpaceNavigator', tool_server=tool_server, port=port, speed=100)
+        Device.__init__(self, device_name='SpaceNavigator', tool_server=tool_server, port=port, speed=150)
+        self.a = 0
+        self.b = 0
 
     def parse_function(self, data):
         # OSC.py uses big endian, OSC.readInt changed to little endian for p5osc
@@ -15,23 +17,32 @@ class SpaceNavigatorDevice(Device):
         
         type, rest = OSC.readString(rest)
         
-        if name.endswith("xyz/0"):
+        if name.endswith("rot/xyz/0"):
             self.parse_field(rest, 'pitch', 'y')
 
-        if name.endswith("xyz/1"):
+        if name.endswith("rot/xyz/1"):
             self.parse_field(rest, 'roll', 'x')
         
-        if name.endswith("xyz/2"):
+        if name.endswith("rot/xyz/2"):
             self.parse_field(rest, 'yaw', 'z')
-        
-        if name.endswith("trans/0"):
-            self.parse_field(rest, 'pitch', 'x')
 
-        if name.endswith("trans/1"):
-            self.parse_field(rest, 'roll', 'y')
-        
-        if name.endswith("trans/2"):
-            self.parse_field(rest, 'yaw', 'z') 
+        if name.endswith("trans/xyz/2"):
+            self.b = self.readFloat(rest)[0]
+            
+        if name.endswith("buttons/1"):
+            pass
+            """
+            b = self.readFloat(rest)[0]
+            self.b += b
+            
+            if self.b % 2 == b:
+                return            
+            
+            if self.b % 2 == 0:
+                self.tool_server.on_mouse_release(0, 0, 0, 0)
+            else:
+                self.tool_server.on_mouse_press(0, 0, 0, 0)
+            """           
             
     def parse_field(self, rest, field, axis):
         # get new value
@@ -48,12 +59,14 @@ class SpaceNavigatorDevice(Device):
         # update previous with new value
         setattr(self, field, value)
         
-        if axis == 'x':
-            self.tool_server.on_mouse_drag(0, 0, self.speed*self.delta, 0, 0, 0)
-        elif axis == 'y':
-            self.tool_server.on_mouse_drag(0, 0, 0, -self.speed*self.delta, 0, 0)      
-        elif axis == 'z':
-            self.tool_server.on_mouse_scroll(0, 0, 0, -self.speed*self.delta)            
+        #if self.b % 2 != 0:
+        if self.b > 0.6:
+            if axis == 'x':
+                self.tool_server.on_mouse_drag(0, 0, self.speed*self.delta, 0, 0, 0)
+            elif axis == 'y':
+                self.tool_server.on_mouse_drag(0, 0, 0, -self.speed*self.delta, 0, 0)      
+            elif axis == 'z':
+                self.tool_server.on_mouse_scroll(0, 0, 0, -self.speed*self.delta)            
     
 if __name__ == '__main__':
     sn_server = SpaceNavigatorDevice(FakeServer())
