@@ -54,3 +54,9 @@ class FakeServer():
     
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         print "rotating [z] by", scroll_y
+    
+    def on_mouse_press(self, x, y, button, modifiers):
+        print "button pressed"
+
+    def on_mouse_release(self, x, y, button, modifiers):
+        print "button released"
