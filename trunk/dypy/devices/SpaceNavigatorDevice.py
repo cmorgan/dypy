@@ -1,6 +1,5 @@
 from Device import *
 import OSC
-import usb
 
 class SpaceNavigatorDevice(Device):
     def __init__(self, tool_server, port=9001):
@@ -27,22 +26,7 @@ class SpaceNavigatorDevice(Device):
             self.parse_field(rest, 'yaw', 'z')
 
         if name.endswith("trans/xyz/2"):
-            self.b = self.readFloat(rest)[0]
-            
-        if name.endswith("buttons/1"):
-            pass
-            """
-            b = self.readFloat(rest)[0]
-            self.b += b
-            
-            if self.b % 2 == b:
-                return            
-            
-            if self.b % 2 == 0:
-                self.tool_server.on_mouse_release(0, 0, 0, 0)
-            else:
-                self.tool_server.on_mouse_press(0, 0, 0, 0)
-            """           
+            self.b = self.readFloat(rest)[0]         
             
     def parse_field(self, rest, field, axis):
         # get new value
