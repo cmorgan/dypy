@@ -3,7 +3,7 @@ show = gui.MainWindow.show
 
 # use to toggle debug messages
 # warning: very verbose
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 LOG_FLAG = False
 
 def reset_log():
