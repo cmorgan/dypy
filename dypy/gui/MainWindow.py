@@ -55,6 +55,7 @@ class MainWindow(wx.Frame):
 		self.systems = get_systems()
 		dypy.debug("MainWindow", "Loaded %d systems." % len(self.systems))
 		
+		# auto loading demos not implemented
 		self.demos = get_demos()
 		dypy.debug("MainWindow", "Loaded %d demos." % len(self.demos))
 		
@@ -152,7 +153,6 @@ class MainWindow(wx.Frame):
 		# open dialog and get file name
 		if dialog.ShowModal() == wx.ID_OK:
 			dypy.debug("MainWindow", "Loading demo from file %s." % dialog.GetPath())
-
 			shelf = shelve.open(dialog.GetPath())
 			
 			demo_system = shelf["demo system"]
@@ -167,45 +167,59 @@ class MainWindow(wx.Frame):
 			self.load_control(shelf, 'state minimum controls', self.system_panel.state_min_controls)
 			self.load_control(shelf, 'state maximum controls', self.system_panel.state_max_controls)
 			self.load_control(shelf, 'parameter minimum controls', self.system_panel.param_min_controls)
-			self.load_control(shelf, 'parameter maximum controls', self.system_panel.param_max_controls)
-			
-			shelf.close()			
+			self.load_control(shelf, 'parameter maximum controls', self.system_panel.param_max_controls)		
 			
 			self.system_panel.update_parameters()
 			self.system_panel.update_state()
 			
 			dypy.debug("MainWindow", "Updating tool to %s." % demo_tool)
 			self.main_panel.set_tool_by_name(demo_tool)
+			
+			dypy.debug("MainWindow", "Loading tool settings") 
+			self.tools[2].state_x_choice.SetSelection(shelf["pp x axis"])
+			self.tools[2].state_y_choice.SetSelection(shelf["pp y axis"])
+			self.tools[2].state_z_choice.SetSelection(shelf["pp z axis"])
+			self.tools[2].on_state_x_selected()
+			self.tools[2].on_state_y_selected()
+			self.tools[2].on_state_z_selected()
+			
+			self.tools[0].state_choice.SetSelection(shelf["orbit state axis"])
+			self.tools[0].param_choice.SetSelection(shelf["orbit parameter axis"])
+			self.tools[0].on_state_selected()
+			self.tools[0].on_param_selected()
+			
+			shelf.close()
 		else:
 			dypy.debug("MainWindow", "Loading demo canceled by user.")
 		
 		dialog.Destroy()
 
 	def on_save_demo(self, event):
-		dypy.debug("MainWindow", "Saving demo to file.")
-		
+		dypy.debug("MainWindow", "Saving demo to file.")	
 		dialog = Widgets.SaveDialog(self)
 		
 		if dialog.ShowModal() == wx.ID_OK:
-			demo_name = dialog.name_text.GetValue()
-			demo_description = dialog.description_text.GetValue()
-			demo_location = dialog.location_text.GetValue()
-			
-			shelf = shelve.open(demo_location)
+			dypy.debug("MainWindow", "Saving demo as file %s." % dialog.location_text.GetValue())
+			shelf = shelve.open(dialog.location_text.GetValue())
 			
 			shelf["demo system"] = self.main_panel.get_system_name()
-			shelf["demo name"] = demo_name
-			shelf["demo description"] = demo_description
+			shelf["demo name"] = dialog.name_text.GetValue()
+			shelf["demo description"] = dialog.description_text.GetValue()
 			shelf["demo tool"] = self.main_panel.get_tool_name()
 			
 			self.save_control(shelf, "state minimum controls", self.system_panel.state_min_controls)
 			self.save_control(shelf, "state maximum controls", self.system_panel.state_max_controls)
 			self.save_control(shelf, "parameter minimum controls", self.system_panel.param_min_controls)
 			self.save_control(shelf, "parameter maximum controls", self.system_panel.param_max_controls)
-
+			
+			shelf["pp x axis"] = self.tools[2].state_x_choice.GetSelection()
+			shelf["pp y axis"] = self.tools[2].state_y_choice.GetSelection()
+			shelf["pp z axis"] = self.tools[2].state_z_choice.GetSelection()
+			
+			shelf["orbit state axis"] = self.tools[0].state_choice.GetSelection()
+			shelf["orbit parameter axis"] = self.tools[0].param_choice.GetSelection()
+			
 			shelf.close()
-
-			dypy.debug("MainWindow", "Saving demo as file %s." % demo_location)
 		else:
 			dypy.debug("MainWindow", "Saving demo canceled by user.")
 		

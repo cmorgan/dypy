@@ -71,14 +71,15 @@ class PortraitToolGUI(ToolGUI):
      
     def update_system(self, system):
         # update state axis choices
-        self.state_x_choice.SetItems(system.get_state_names())
+        state_names = system.get_state_names()
+        self.state_x_choice.SetItems(state_names)
         self.state_x_choice.SetSelection(0)
         
-        self.state_y_choice.SetItems(system.get_state_names())
-        self.state_y_choice.SetSelection(0)
+        self.state_y_choice.SetItems(state_names)
+        self.state_y_choice.SetSelection(1 if len(state_names) > 0 else 0)
         
-        self.state_z_choice.SetItems(system.get_state_names())
-        self.state_z_choice.SetSelection(0)
+        self.state_z_choice.SetItems(state_names)
+        self.state_z_choice.SetSelection(2 if len(state_names) > 1 else 0)
         
         dypy.debug("PortraitToolGUI", "Updated for system %s." % system.name)
 

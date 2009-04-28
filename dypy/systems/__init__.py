@@ -17,4 +17,4 @@ def getall():
 
 	return names
 
-__all__  = getall()
+__all__ = getall()
