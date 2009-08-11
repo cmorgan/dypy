@@ -163,15 +163,6 @@ class MainWindow(wx.Frame):
 			dypy.debug("MainWindow", "Updating system to %s." % demo_system)
 			self.main_panel.set_system_by_name(demo_system)
 			
-			dypy.debug("MainWindow", "Loading demo controls." )
-			self.load_control(shelf, 'state minimum controls', self.system_panel.state_min_controls)
-			self.load_control(shelf, 'state maximum controls', self.system_panel.state_max_controls)
-			self.load_control(shelf, 'parameter minimum controls', self.system_panel.param_min_controls)
-			self.load_control(shelf, 'parameter maximum controls', self.system_panel.param_max_controls)		
-			
-			self.system_panel.update_parameters()
-			self.system_panel.update_state()
-			
 			dypy.debug("MainWindow", "Updating tool to %s." % demo_tool)
 			self.main_panel.set_tool_by_name(demo_tool)
 			
@@ -187,6 +178,14 @@ class MainWindow(wx.Frame):
 			self.tools[0].param_choice.SetSelection(shelf["orbit parameter axis"])
 			self.tools[0].on_state_selected()
 			self.tools[0].on_param_selected()
+			
+			dypy.debug("MainWindow", "Loading demo controls." )
+			self.load_control(shelf, 'state minimum controls', self.system_panel.state_min_controls)
+			self.load_control(shelf, 'state maximum controls', self.system_panel.state_max_controls)
+			self.load_control(shelf, 'parameter minimum controls', self.system_panel.param_min_controls)
+			self.load_control(shelf, 'parameter maximum controls', self.system_panel.param_max_controls)					
+			self.system_panel.update_parameters()
+			self.system_panel.update_state()			
 			
 			shelf.close()
 		else:
