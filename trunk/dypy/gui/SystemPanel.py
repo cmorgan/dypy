@@ -132,7 +132,7 @@ class SystemPanel(wx.Panel):
 			min = float(self.param_min_controls[i].GetValue())
 			max = float(self.param_max_controls[i].GetValue())
 			
-			ranges.append((min, max))		
+			ranges.append((min, max))
 
 		dypy.debug("SystemPanel", "Parameter ranges updated.")
 		

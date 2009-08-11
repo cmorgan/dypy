@@ -4,8 +4,6 @@ import OSC
 class SpaceNavigatorDevice(Device):
     def __init__(self, tool_server, port=9001):
         Device.__init__(self, device_name='SpaceNavigator', tool_server=tool_server, port=port, speed=150)
-        self.a = 0
-        self.b = 0
 
     def parse_function(self, data):
         # OSC.py uses big endian, OSC.readInt changed to little endian for p5osc
@@ -23,10 +21,7 @@ class SpaceNavigatorDevice(Device):
             self.parse_field(rest, 'roll', 'x')
         
         if name.endswith("rot/xyz/2"):
-            self.parse_field(rest, 'yaw', 'z')
-
-        if name.endswith("trans/xyz/2"):
-            self.b = self.readFloat(rest)[0]         
+            self.parse_field(rest, 'yaw', 'z')        
             
     def parse_field(self, rest, field, axis):
         # get new value
@@ -43,14 +38,12 @@ class SpaceNavigatorDevice(Device):
         # update previous with new value
         setattr(self, field, value)
         
-        #if self.b % 2 != 0:
-        if self.b > 0.6:
-            if axis == 'x':
-                self.tool_server.on_mouse_drag(0, 0, self.speed*self.delta, 0, 0, 0)
-            elif axis == 'y':
-                self.tool_server.on_mouse_drag(0, 0, 0, -self.speed*self.delta, 0, 0)      
-            elif axis == 'z':
-                self.tool_server.on_mouse_scroll(0, 0, 0, -self.speed*self.delta)            
+        if axis == 'x':
+            self.tool_server.on_mouse_drag(0, 0, self.speed*self.delta, 0, 0, 0)
+        elif axis == 'y':
+            self.tool_server.on_mouse_drag(0, 0, 0, self.speed*self.delta, 0, 0)      
+        elif axis == 'z':
+            self.tool_server.on_mouse_scroll(0, 0, 0, -self.speed*self.delta)            
     
 if __name__ == '__main__':
     sn_server = SpaceNavigatorDevice(FakeServer())
