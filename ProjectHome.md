@@ -1,0 +1,1 @@
+An extensible Python framework for visualizing dynamical systems.
